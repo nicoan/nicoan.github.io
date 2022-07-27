@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Sur v ¬Sur</title>
-    <link>https://nicoan.github.io/</link>
-    <description>Recent content on Sur v ¬Sur</description>
+    <title>Posts on Sur v ¬Sur</title>
+    <link>https://nicoan.github.io/posts/</link>
+    <description>Recent content in Posts on Sur v ¬Sur</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 26 Jul 2022 12:00:00 -0300</lastBuildDate><atom:link href="https://nicoan.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 26 Jul 2022 12:00:00 -0300</lastBuildDate><atom:link href="https://nicoan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Stack and Heap</title>
       <link>https://nicoan.github.io/posts/stack_and_heap/</link>
@@ -14,24 +14,6 @@
       <guid>https://nicoan.github.io/posts/stack_and_heap/</guid>
       <description>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through ownership. Then I thought &amp;ldquo;I should first write about Stack and Heap&amp;rdquo;. So, here we are :).
 To understand memory management first, we need to understand what the Stack and the Heap are.</description>
-    </item>
-    
-    <item>
-      <title>About me</title>
-      <link>https://nicoan.github.io/about/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://nicoan.github.io/about/</guid>
-      <description>Test </description>
-    </item>
-    
-    <item>
-      <title>Blog</title>
-      <link>https://nicoan.github.io/blog/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://nicoan.github.io/blog/</guid>
-      <description>archives</description>
     </item>
     
   </channel>
