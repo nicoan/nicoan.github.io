@@ -5,11 +5,31 @@
   <url>
     <loc>https://nicoan.github.io/posts/stack_and_heap/</loc>
     <lastmod>2022-07-26T12:00:00-03:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="es"
+                href="https://nicoan.github.io/es/posts/stack_and_heap/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://nicoan.github.io/posts/stack_and_heap/"
+                />
   </url>
   
   <url>
     <loc>https://nicoan.github.io/posts/</loc>
     <lastmod>2022-07-26T12:00:00-03:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="es"
+                href="https://nicoan.github.io/es/posts/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://nicoan.github.io/posts/"
+                />
   </url>
   
   <url>

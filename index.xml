@@ -5,7 +5,11 @@
     <link>https://nicoan.github.io/</link>
     <description>Recent content on Sur v ¬Sur</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 26 Jul 2022 12:00:00 -0300</lastBuildDate><atom:link href="https://nicoan.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 26 Jul 2022 12:00:00 -0300</lastBuildDate>
+    
+	<atom:link href="https://nicoan.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
     <item>
       <title>Stack and Heap</title>
       <link>https://nicoan.github.io/posts/stack_and_heap/</link>
