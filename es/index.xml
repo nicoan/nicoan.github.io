@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Sur v ¬Sur</title>
     <link>https://nicoan.github.io/es/</link>
     <description>Recent content on Sur v ¬Sur</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 26 Jul 2022 12:00:00 -0300</lastBuildDate>
-    
-	<atom:link href="https://nicoan.github.io/es/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Tue, 26 Jul 2022 12:00:00 -0300</lastBuildDate><atom:link href="https://nicoan.github.io/es/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Stack y Heap</title>
       <link>https://nicoan.github.io/es/posts/stack_and_heap/</link>
@@ -17,7 +13,111 @@
       
       <guid>https://nicoan.github.io/es/posts/stack_and_heap/</guid>
       <description>¿Por qué escribir sobre Stack y Heap cuando ya existen pila (pun intended) de artículos en internet? Quiero mejorar mi escritura, y para cumplir este objetivo, decidí escribir artículos sobre cosas que encuentro interesantes. La idea es mejorar mi escritura tanto en inglés (ver arriba a la derecha, hay un link a este mismo artículo en dicho idioma) como en español. Originalmente, este post iba a tratar sobre cómo Rust maneja la memoria a través de lo que se conoce como ownership, pero luego pensé &amp;ldquo;debería primero escribir sobre Stack y Heap&amp;rdquo;.</description>
+      <content:encoded><![CDATA[<p>¿Por qué escribir sobre Stack y Heap cuando ya existen pila (<em>pun intended</em>) de artículos en internet? Quiero mejorar mi escritura, y para cumplir este objetivo, decidí escribir artículos sobre cosas que encuentro interesantes. La idea es mejorar mi escritura tanto en inglés (ver arriba a la derecha, hay un link a este mismo artículo en dicho idioma) como en español. Originalmente, este post iba a tratar sobre cómo Rust maneja la memoria a través de lo que se conoce como <a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">ownership</a>, pero luego pensé &ldquo;debería primero escribir sobre Stack y Heap&rdquo;.</p>
+<p>Para entender cómo administrar el uso de memoria, primero tenemos que entender qué son el Stack y el Heap. Stack y Heap son regiones de memoria utilizadas por procesos para guardar y leer valores. La memoria de un proceso normalmente se puede dividir en cuatro regiones:</p>
+<p><img loading="lazy" src="/images/stack/memory.png#center" alt="Regiones de memoria"  />
+</p>
+<ul>
+<li><strong>Text</strong>: Aquí viven las instrucciones del nuestro programa. El programa ya compilado se carga y guarda en esta región.</li>
+<li><strong>Data</strong>: Todas las variables globales se guardan en esta región.</li>
+<li><strong>Stack</strong>: Es un pedazo contíguo de memoria. En esta región se guardan las variables locales, argumentos y dirección de retorno de las funciones (vamos a ver esto más detalladamente en la próxima sección). Cada hilo de ejecución de un proceso tiene su propio Stack.</li>
+<li><strong>Heap</strong>: Guarda todos los valores de memoria que fueron asignados dinámicamente. Esta región es compartida por todos los hilos de un proceso.</li>
+</ul>
+<h1 id="stack">Stack</h1>
+<p>El Stack de un proceso es una implementación real de la <a href="https://es.wikipedia.org/wiki/Pila_(inform%C3%A1tica)">estructura de datos homónima</a>. Su tamaño es fijo; no podemos pedirle al sistema operativo más memoria. Este tamaño depende principalmente del SO. En sistemas Linux modernos, el tamaño <strong>máximo</strong> es de 8 MB (esto se puede verificar utilizando el comando <code>ulimit -s</code>)</p>
+<h2 id="dentro-del-stack">Dentro del Stack</h2>
+<p>Cada vez que llamamos a una función, un <em>Stack frame</em> (un pedazo de memoria contíguo que contiene toda la información requerida por la función recientemente llamada) es creado y puesto en la parte superior del Stack. Este proceso también sucede de forma inversa, es decir, cada vez que una función termina, el Stack frame es eliminado del Stack, liberando automáticamente toda la memoria utilizada por éste. A continuación veremos un ejemplo simple de cómo el Stack se va llenando. Consideremos el siguiente programa:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">sum</span>(a: <span style="color:#66d9ef">i32</span>, b: <span style="color:#66d9ef">i32</span>) -&gt; <span style="color:#66d9ef">i32</span> {
+    <span style="color:#66d9ef">let</span> result <span style="color:#f92672">=</span> a <span style="color:#f92672">+</span> b;
+    result
+}
+
+<span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">square_sum</span>(a: <span style="color:#66d9ef">i32</span>, b: <span style="color:#66d9ef">i32</span>) -&gt; <span style="color:#66d9ef">i32</span> {
+    <span style="color:#66d9ef">let</span> sum_result <span style="color:#f92672">=</span> sum(a, b);
+    <span style="color:#66d9ef">let</span> pow_result <span style="color:#f92672">=</span> sum_result <span style="color:#f92672">*</span> sum_result;
+    pow_result
+}
+
+<span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#66d9ef">let</span> n1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+    <span style="color:#66d9ef">let</span> n2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+    <span style="color:#66d9ef">let</span> pow_result <span style="color:#f92672">=</span> square_sum(n1, n2);
+    println<span style="color:#f92672">!</span>(<span style="color:#e6db74">&#34;Result: {}&#34;</span>, pow_result);
+}
+</code></pre></div><p>El siguiente diagrama representa qué pasa con el Stack cuando el programa es ejecutado:</p>
+<p><img loading="lazy" src="/images/stack/stack_1.png#center" alt="Stack en accion"  />
+</p>
+<ol>
+<li>Al principio, un Stack frame para la función <code>main</code> es creado.</li>
+<li><code>main</code> llama a <code>square_sum</code>, un Stack frame para <code>square_sum</code> es creado.</li>
+<li><code>square_sum</code> llama a <code>sum</code>, un Stack frame es creado para <code>sum</code>.</li>
+<li>Al terminar <code>sum</code>, su Stack frame es destruido, liberando automáticamente toda la memoria ocupada por esta función.</li>
+<li>Al terminar <code>square_sum</code>, su Stack frame es destruido, liberando automáticamente toda la memoria ocupada por esta función.</li>
+<li><code>main</code> imprime el resultado y el programa termina. El sistema operativo libera toda la memoria restante utilizada por el proceso que ejecutaba nuestro programa.</li>
+</ol>
+<p><strong>NOTA</strong>: Normalmente el stack crece hacia abajo!</p>
+<h2 id="dentro-del-stack-frame">Dentro del Stack frame</h2>
+<p>El Stack frame es donde todas las variables locales, argumentos y dirección de retorno (ésta es utilizada para saber cuál es la siguiente instrucción a ejecutar luego de que una llamada a función termina) de una función viven. Las buenas noticias son que el usuario no debe preocuparse por asignar o liberar la memoria utilizada por éste (si utilizamos safe Rust, tampoco lo debe hacer para asignaciones en el Heap, pero eso es para otro artículo). Dado que el Stack tiene un tamaño fijo, sólo podemos guardar datos cuyo tamaño es conocido en <a href="https://es.wikipedia.org/wiki/Tiempo_de_compilaci%C3%B3n">tiempo de compilación</a>. Para datos de tamaño variable (por ejemplo, <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html">vectores</a>), el Heap es utilizado (sólo un puntero a esa parte del Heap y <em>tal vez</em> algo de metadata es guardada en el Stack). A continuación vamos a expandir los diagramas presentados más arriba para mostrar el Stack frame de cada función:</p>
+<p><img loading="lazy" src="/images/stack/es/stack_2.png#center" alt="Stack Frame"  />
+</p>
+<p>¿Cómo utilizamos la memoria contenida en un frame? Existen dos punteros que nos ayudan con eso:</p>
+<ul>
+<li><strong>Stack Pointer (SP)</strong>: Siempre apunta al tope del Stack. Cuando un Stack frame es creado, el nuevo valor de SP es <code>SP + size_of(new_Stack_frame)</code>. Este valor cambia cada vez que insertamos o quitamos un elemento. Cuando una función termina su ejecución, vuelve al valor que tenía antes de la llamada.</li>
+<li><strong>Base Pointer (BP)</strong>: También conocido como <em>Frame Pointer (FP)</em>. Apunta a la base del último Stack frame. Cuando un Stack frame es creado, el <em>BP</em> es usado para acceder a los argumentos y variables locales de una función sumando/restando la posición de la variable que queremos acceder respecto al mismo <em>BP</em>. Por ejemplo, si queremos acceder al argumento <code>y</code>, necesitamos leer la dirección <code>BP + 12</code> porque, primero, tenemos la <code>dirección de retorno</code> que (asumimos) tiene un tamaño de 4 bytes, y luego, tenemos el argumento <code>x</code>, el cuál es un entero de 32 bits (4 bytes).</li>
+</ul>
+<p>La estructura presentada aquí es sólo un ejemplo. Aunque en la realidad los Stack frames contienen la misma información, cómo los datos son organizados dependen de la <a href="(https://en.wikipedia.org/wiki/Calling_convention)">arquitectura de la máquina</a> y de la <a href="https://es.wikipedia.org/wiki/Interfaz_binaria_de_aplicaciones">interfaz binaria de aplicación (ABI por sus siglas en inglés)</a>.</p>
+<p><a href="https://stackoverflow.com/questions/3699283/what-is-stack-frame-in-assembly#answer-3700219">Esta respuesta de StackOverflow</a> muestra cómo el Stack frame es construido utilizando x86 assembly.</p>
+<h1 id="heap">Heap</h1>
+<p>En este contexto, &ldquo;Heap&rdquo; no tiene nada que ver con la estructura de datos Heap. Es sólo el nombre para la región de memoria &ldquo;libre&rdquo;.</p>
+<p>El Heap no tiene un tamaño fijo. Podemos pedir más memoria, siempre y cuando esté disponible en el sistema, y liberarla si no necesitamos más los valores contenidos en ésta. A diferencia del Stack, cuando trabajamos con el Heap tenemos que admnistrar la asignación/liberación de memoria (en Rust, <strong>la mayoría</strong> de las asignaciones/liberaciones están escondidas detrás de abstracciones). Cuando utilizamos el Heap, estamos asignando memoria dinámicamente. Esto es muy conveniente cuando trabajamos con datos cuyo tamaño es desconocido en tiempo de compilación (como por ejemplo, texto ingresado por un usuario). Otra diferencia es que, las asignaciones de memoría <strong>no</strong> son secuenciales.</p>
+<p>Cuando un proceso quiere asignar un pedazo de memoria de un tamaño determinado, el sistema operativo primero debe buscar una porción de memoria libre del volumen requerido. Luego de encontrarla, el SO bloquea dicha memoria (sólo el proceso que la pidió la puede acceder) y retorna la dirección correspondiente al primer bloque de ésta. Este proceso nos lleva al problema conocido como <em>fragmentación de memoria</em> (los datos guardados en el Heap <strong>no</strong> son contíguos).</p>
+<p>Cuando utilizamos el Heap, también guardamos algunos datos en el Stack (<em>al menos</em> un puntero a los datos alojados en el Heap). Consideremos el siguiente código:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#66d9ef">let</span> n1: Box<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> Box::new(<span style="color:#ae81ff">42</span>);
+    <span style="color:#66d9ef">let</span> my_string <span style="color:#f92672">=</span> String::from(<span style="color:#e6db74">&#34;hello&#34;</span>);
+
+    println<span style="color:#f92672">!</span>(<span style="color:#e6db74">&#34;{} {}&#34;</span>, my_string, n1);
+}
+</code></pre></div><p><strong>NOTA</strong>: Un <a href="https://doc.rust-lang.org/rust-by-example/std/box.html">Box</a> es un <em><a href="https://es.wikipedia.org/wiki/Puntero_inteligente">puntero inteligente</a></em> hacia un valor alojado en el Heap.</p>
+<p>El siguiente diagrama muestra las asignaciones hechas por el programa en el Stack y el Heap:</p>
+<p><img loading="lazy" src="/images/stack/es/heap.png#center" alt="Heap"  />
+</p>
+<p>Escribir y leer el Heap es más lento que escribir y leer el Stack por varias razones:</p>
+<ul>
+<li>Para la asignación de memoria, un proceso tiene que hacer una llamada al sistema y esperar que el sistema operativo complete el proceso descripto más arriba.</li>
+<li>Para utilizar la memoria (sea para escribir o leer), tenemos al menos un nivel de indirección (seguir el puntero alojado en el Stack).</li>
+<li>Bajo las condiciones correctas, un programa puede ser optimizado para guardar algunas partes del Stack dentro de la caché del procesador, haciendo las lecturas/escrituras increíblemente rápidas.</li>
+</ul>
+<h1 id="resumen">Resumen</h1>
+<table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>Heap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tamaño fijo</td>
+<td>Tamaño variable</td>
+</tr>
+<tr>
+<td>Las asignaciones son contiguas</td>
+<td>Las asignaciones suceden en orden &ldquo;aleatorio&rdquo;</td>
+</tr>
+<tr>
+<td>Tiempo de acceso rápido</td>
+<td>Tiempo de acceso lento</td>
+</tr>
+<tr>
+<td>Es &ldquo;thread safe&rdquo; por definición</td>
+<td>Puede ser utilizado para compartir memoria entre procesos</td>
+</tr>
+</tbody>
+</table>
+]]></content:encoded>
     </item>
+    
     
   </channel>
 </rss>

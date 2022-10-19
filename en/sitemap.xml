@@ -53,6 +53,16 @@
   
   <url>
     <loc>https://nicoan.github.io/blog/</loc>
+    <xhtml:link
+                rel="alternate"
+                hreflang="es"
+                href="https://nicoan.github.io/es/blog/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://nicoan.github.io/blog/"
+                />
   </url>
   
   <url>

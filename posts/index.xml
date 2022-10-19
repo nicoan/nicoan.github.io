@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Posts on Sur v ¬Sur</title>
     <link>https://nicoan.github.io/posts/</link>
     <description>Recent content in Posts on Sur v ¬Sur</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 26 Jul 2022 12:00:00 -0300</lastBuildDate>
-    
-	<atom:link href="https://nicoan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Tue, 26 Jul 2022 12:00:00 -0300</lastBuildDate><atom:link href="https://nicoan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Stack and Heap</title>
       <link>https://nicoan.github.io/posts/stack_and_heap/</link>
@@ -18,6 +14,109 @@
       <guid>https://nicoan.github.io/posts/stack_and_heap/</guid>
       <description>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through ownership. Then I thought &amp;ldquo;I should first write about Stack and Heap&amp;rdquo;. So, here we are :).
 To understand memory management first, we need to understand what the Stack and the Heap are.</description>
+      <content:encoded><![CDATA[<p>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through <a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">ownership</a>. Then I thought &ldquo;I should first write about Stack and Heap&rdquo;. So, here we are :).</p>
+<p>To understand memory management first, we need to understand what the Stack and the Heap are. Stack and Heap are memory regions used by a process to store and read values. The memory of a running process can usually be divided in the following four regions:</p>
+<p><img loading="lazy" src="/images/stack/memory.png#center" alt="Memory Regions"  />
+</p>
+<ul>
+<li><strong>Text</strong>: Here is where our program instructions live. Our compiled program is loaded and stored in this region of the memory.</li>
+<li><strong>Data</strong>: All the global variables are stored in this region.</li>
+<li><strong>Stack</strong>: A contiguous chunk of memory that stores local variables, arguments and return addresses of functions (we will go deeper on this in the next section). Every process&rsquo; thread has its own Stack.</li>
+<li><strong>Heap</strong>: Stores all the dynamically allocated memory. This region is shared among all threads of a process.</li>
+</ul>
+<h1 id="stack">Stack</h1>
+<p>A process&rsquo; Stack is an actual implementation of the <a href="https://en.wikipedia.org/wiki/Stack_(abstract_data_type)">Stack data structure</a>. It is fixed in size; we can not ask the operating system for more memory. This size depends mostly on the OS. In modern Linux systems, the <strong>maximum</strong> Stack size is 8 MB (you can check yours with the command <code>ulimit -s</code>).</p>
+<h2 id="inside-the-stack">Inside the Stack</h2>
+<p>Every time we call a function, a <em>Stack frame</em> (a chunk of contiguous memory containing all the information required by the recently called function) is created and placed on top of the Stack. And, every time a function ends, the Stack frame is popped from the Stack, automatically releasing all the memory used by it. Let&rsquo;s see a minimal example on how the Stack is populated. Consider the following code:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">sum</span>(a: <span style="color:#66d9ef">i32</span>, b: <span style="color:#66d9ef">i32</span>) -&gt; <span style="color:#66d9ef">i32</span> {
+    <span style="color:#66d9ef">let</span> result <span style="color:#f92672">=</span> a <span style="color:#f92672">+</span> b;
+    result
+}
+
+<span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">square_sum</span>(a: <span style="color:#66d9ef">i32</span>, b: <span style="color:#66d9ef">i32</span>) -&gt; <span style="color:#66d9ef">i32</span> {
+    <span style="color:#66d9ef">let</span> sum_result <span style="color:#f92672">=</span> sum(a, b);
+    <span style="color:#66d9ef">let</span> pow_result <span style="color:#f92672">=</span> sum_result <span style="color:#f92672">*</span> sum_result;
+    pow_result
+}
+
+<span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#66d9ef">let</span> n1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+    <span style="color:#66d9ef">let</span> n2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+    <span style="color:#66d9ef">let</span> pow_result <span style="color:#f92672">=</span> square_sum(n1, n2);
+    println<span style="color:#f92672">!</span>(<span style="color:#e6db74">&#34;Result: {}&#34;</span>, pow_result);
+}
+</code></pre></div><p>The following diagram represents what happens with the Stack when the program is executed:</p>
+<p><img loading="lazy" src="/images/stack/stack_1.png#center" alt="Executing Stack"  />
+</p>
+<ol>
+<li>At the beginning, a Stack frame for the <code>main</code> function is created.</li>
+<li><code>main</code> calls <code>square_sum</code>, a Stack frame for <code>square_sum</code> is created.</li>
+<li><code>square_sum</code> calls <code>sum</code>, a Stack frame is created for <code>sum</code>.</li>
+<li>After <code>sum</code> is called, its Stack frame is destroyed, releasing automatically all the memory it occupied.</li>
+<li>After <code>square_sum</code> is called, its Stack frame is destroyed, releasing automatically all the memory it occupied.</li>
+<li><code>main</code> prints the result and ends. The operating system frees up all the remaining memory.</li>
+</ol>
+<p><strong>NOTE</strong>: Usually, the stack grow downwards!</p>
+<h2 id="inside-the-stack-frame">Inside the Stack frame</h2>
+<p>The Stack frame is where all the local variables, arguments, and return address (this is used by the running process to know where the next code instruction to be executed is, after the function call ends) of a function live. The good news is that the user does not have to worry about allocating or de-allocating the memory used by it (neither with Heap allocations in safe Rust, but that is for another post). Given that the Stack is fixed in size, we can only store data that its size is known at compile time. For dynamic sized data (such as <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html">vectors</a>), Heap memory is used (only a pointer to that part of the Heap memory and <em>maybe</em> some metadata is saved into the Stack). Let&rsquo;s expand the above Stack diagrams to show the stack frame of each function:</p>
+<p><img loading="lazy" src="/images/stack/stack_2.png#center" alt="Stack Frame"  />
+</p>
+<p>How do we use the memory contained in the frame? We have two pointers that helps us with that:</p>
+<ul>
+<li><strong>Stack Pointer (SP)</strong>: Always points at the top of the Stack. When a Stack frame is created the new SP&rsquo;s value is <code>SP + size_of(new_Stack_frame)</code>. It will change any time a value is pushed onto or popped off the stack. When an executing function returns, it goes back to its previous size.</li>
+<li><strong>Base Pointer (BP)</strong>: Also known as <em>Frame Pointer (FP)</em>. Points to the base of the current Stack frame. When a Stack frame is created, the BP gets the value SP had before adding the size of the new Stack frame. The <em>BP</em> is used to access the arguments and local variables of a function by adding/substracting the offset of the variable we want to access. For example, if we want to access the argument <code>y</code>, we need to read the address <code>BP + 12</code> because, first, we have the <code>return address</code> that (let&rsquo;s assume) is 4 bytes long, and then the argument <code>x</code> that is a 32 bits integer (4 bytes).</li>
+</ul>
+<p>The layout presented here is just an example. Although, in reality, the frames contain the same information, how the data is organized depends on the <a href="https://en.wikipedia.org/wiki/Calling_convention">machine architecture</a> and the <a href="https://en.wikipedia.org/wiki/Application_binary_interface">application binary interface (ABI)</a>.</p>
+<p><a href="https://stackoverflow.com/questions/3699283/what-is-stack-frame-in-assembly#answer-3700219">This StackOverflow answer</a> shows how the frame is constructed using x86 assembly.</p>
+<h1 id="heap">Heap</h1>
+<p>In this context, &ldquo;Heap&rdquo; has nothing to do with the Heap data structure, it is just a name for the free memory pool.</p>
+<p>The Heap is not fixed in size. We can ask for more memory, as long as it is available in the system, and free it if the allocated values are not needed anymore. Unlike Stack, when we are working with the Heap we have to take care of the allocation and deallocation of memory (in Rust, <strong>most</strong> allocation/deallocation logic is hidden behind abstractions). When we use the Heap, we are dynamically allocating memory. This comes in very handy when we are dealing with data which size is unknown at compile time (i.e. user input). In opposition to the Stack, the memory allocations are not sequential.</p>
+<p>When a process wants to allocate some chunk of memory of a given size, the operating system first has to search for a free piece of memory with the needed size. After finding it, the OS locks it up (only that particular process can access that portion of the system memory) and returns the starting address of the block. This process leads to <em>memory fragmentation</em> (the data allocated in the Heap is <strong>not</strong> contiguous).</p>
+<p>When we use the Heap, we also store some data in the Stack (<em>at least</em> a pointer to the allocated data). Consider the following code:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#66d9ef">let</span> n1: Box<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> Box::new(<span style="color:#ae81ff">42</span>);
+    <span style="color:#66d9ef">let</span> my_string <span style="color:#f92672">=</span> String::from(<span style="color:#e6db74">&#34;hello&#34;</span>);
+
+    println<span style="color:#f92672">!</span>(<span style="color:#e6db74">&#34;{} {}&#34;</span>, my_string, n1);
+}
+</code></pre></div><p><strong>NOTE</strong>: A <a href="https://doc.rust-lang.org/rust-by-example/std/box.html">Box</a> is a smart pointer to a heap allocated value.</p>
+<p>The following diagram shows the allocations made in the Stack and the Heap:</p>
+<p><img loading="lazy" src="/images/stack/heap.png#center" alt="Heap"  />
+</p>
+<p>Writing and reading the Heap is slower than writing and reading the Stack for several reasons:</p>
+<ul>
+<li>For memory allocation, a process has to make a system call and wait for the OS to complete the process described above.</li>
+<li>Using the allocated memory (for writing or reading) involves at least one indirection (following the pointer allocated in the Stack).</li>
+<li>Under the right conditions, a program can be optimized to store some parts of the Stack inside the processor&rsquo;s cache, making writing/reading operations blazingly fast.</li>
+</ul>
+<h1 id="summary">Summary</h1>
+<table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>Heap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed in size</td>
+<td>Can grow or shrink</td>
+</tr>
+<tr>
+<td>Allocations are in a contiguous block</td>
+<td>Allocation happens in &ldquo;random&rdquo; order</td>
+</tr>
+<tr>
+<td>Faster access time</td>
+<td>Slower access time</td>
+</tr>
+<tr>
+<td>Is thread safe by default: every thread of a process has its own Stack.</td>
+<td>Can be used to share memory across threads</td>
+</tr>
+</tbody>
+</table>
+]]></content:encoded>
     </item>
     
   </channel>

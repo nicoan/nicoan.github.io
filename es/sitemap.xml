@@ -48,6 +48,20 @@
   </url>
   
   <url>
+    <loc>https://nicoan.github.io/es/blog/</loc>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://nicoan.github.io/blog/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="es"
+                href="https://nicoan.github.io/es/blog/"
+                />
+  </url>
+  
+  <url>
     <loc>https://nicoan.github.io/es/categories/</loc>
     <xhtml:link
                 rel="alternate"
