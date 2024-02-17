@@ -6,12 +6,12 @@
     <description>Recent content in Posts on Nico Antinori</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>es</language>
-    <lastBuildDate>Tue, 18 Oct 2022 12:00:00 -0300</lastBuildDate><atom:link href="https://nicoan.github.io/es/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 18 Oct 2022 12:00:00 -0300</lastBuildDate>
+    <atom:link href="https://nicoan.github.io/es/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Rust ownership y move semantics</title>
       <link>https://nicoan.github.io/es/posts/move_semantics/</link>
       <pubDate>Tue, 18 Oct 2022 12:00:00 -0300</pubDate>
-      
       <guid>https://nicoan.github.io/es/posts/move_semantics/</guid>
       <description>Ownership y move semantics son dos conceptos que hacen a Rust único. Para entender este tema, es mejor primero entender que son el Stack y el Heap en un nivel básico. ¡Escribí un post sobre eso!
 Es un poco difícil acostumbrarse a estos mecanismos, porque fuerzan al programador a pensar en cosas en las que no se tiene que preocupar en otros lenguajes. ¡Suficiente introducción! vamos a ver de qué se trata todo esto.</description>
@@ -352,12 +352,10 @@ Es un poco difícil acostumbrarse a estos mecanismos, porque fuerzan al programa
 Si querés leer más sobre este tema <a href="https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html">el libro de Rust</a> tiene un capítulo completamente dedicado.</p>
 ]]></content:encoded>
     </item>
-    
     <item>
       <title>Stack y Heap</title>
       <link>https://nicoan.github.io/es/posts/stack_and_heap/</link>
       <pubDate>Tue, 26 Jul 2022 12:00:00 -0300</pubDate>
-      
       <guid>https://nicoan.github.io/es/posts/stack_and_heap/</guid>
       <description>¿Por qué escribir sobre Stack y Heap cuando ya existen pila (pun intended) de artículos en internet? Quiero mejorar mi escritura, y para cumplir este objetivo, decidí escribir artículos sobre cosas que encuentro interesantes. La idea es mejorar mi escritura tanto en inglés (ver arriba a la derecha, hay un link a este mismo artículo en dicho idioma) como en español. Originalmente, este post iba a tratar sobre cómo Rust maneja la memoria a través de lo que se conoce como ownership, pero luego pensé &amp;ldquo;debería primero escribir sobre Stack y Heap&amp;rdquo;.</description>
       <content:encoded><![CDATA[<p>¿Por qué escribir sobre Stack y Heap cuando ya existen pila (<em>pun intended</em>) de artículos en internet? Quiero mejorar mi escritura, y para cumplir este objetivo, decidí escribir artículos sobre cosas que encuentro interesantes. La idea es mejorar mi escritura tanto en inglés (ver arriba a la derecha, hay un link a este mismo artículo en dicho idioma) como en español. Originalmente, este post iba a tratar sobre cómo Rust maneja la memoria a través de lo que se conoce como <a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">ownership</a>, pero luego pensé &ldquo;debería primero escribir sobre Stack y Heap&rdquo;.</p>
@@ -464,6 +462,5 @@ Si querés leer más sobre este tema <a href="https://doc.rust-lang.org/book/ch0
 </table>
 ]]></content:encoded>
     </item>
-    
   </channel>
 </rss>

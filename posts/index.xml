@@ -6,12 +6,12 @@
     <description>Recent content in Posts on Nico Antinori</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 18 Oct 2022 12:00:00 -0300</lastBuildDate><atom:link href="https://nicoan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 18 Oct 2022 12:00:00 -0300</lastBuildDate>
+    <atom:link href="https://nicoan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Rust ownership and move semantics</title>
       <link>https://nicoan.github.io/posts/move_semantics/</link>
       <pubDate>Tue, 18 Oct 2022 12:00:00 -0300</pubDate>
-      
       <guid>https://nicoan.github.io/posts/move_semantics/</guid>
       <description>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a post about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&amp;rsquo;t have to worry about in other languages.</description>
       <content:encoded><![CDATA[<p>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a <a href="/posts/stack_and_heap">post</a> about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&rsquo;t have to worry about in other languages. Enough introduction, let&rsquo;s cut to the chase!</p>
@@ -350,12 +350,10 @@
 <p>If you want to read more about this topic, check out the <a href="https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html">Rust book</a>.</p>
 ]]></content:encoded>
     </item>
-    
     <item>
       <title>Stack and Heap</title>
       <link>https://nicoan.github.io/posts/stack_and_heap/</link>
       <pubDate>Tue, 26 Jul 2022 12:00:00 -0300</pubDate>
-      
       <guid>https://nicoan.github.io/posts/stack_and_heap/</guid>
       <description>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through ownership. Then I thought &amp;ldquo;I should first write about Stack and Heap&amp;rdquo;. So, here we are :).
 To understand memory management first, we need to understand what the Stack and the Heap are.</description>
@@ -463,6 +461,5 @@ To understand memory management first, we need to understand what the Stack and 
 </table>
 ]]></content:encoded>
     </item>
-    
   </channel>
 </rss>

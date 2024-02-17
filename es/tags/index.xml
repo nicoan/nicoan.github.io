@@ -5,6 +5,7 @@
     <link>https://nicoan.github.io/es/tags/</link>
     <description>Recent content in Tags on Nico Antinori</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>es</language><atom:link href="https://nicoan.github.io/es/tags/index.xml" rel="self" type="application/rss+xml" />
+    <language>es</language>
+    <atom:link href="https://nicoan.github.io/es/tags/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
