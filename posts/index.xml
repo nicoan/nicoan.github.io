@@ -6,15 +6,487 @@
     <description>Recent content in Posts on Nico Antinori</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 18 Oct 2022 12:00:00 -0300</lastBuildDate>
+    <lastBuildDate>Sun, 24 Mar 2024 12:00:00 -0300</lastBuildDate>
     <atom:link href="https://nicoan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Rust ownership and move semantics</title>
+      <title>Rust references and borrowing from the inside</title>
+      <link>https://nicoan.github.io/posts/references_and_borrowing/</link>
+      <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.github.io/posts/references_and_borrowing/</guid>
+      <description>Now it is time to talk about references and borrowing. To understand this topic, first check out this post where I talk about ownership and move semantics. As we have seen in the named article, the way Rust manages memory allocations is rather unique. This is also true when we talk about referencing some place in the memory, something that can be achieved in C with pointers.
+GDB In this post I am going to explore what is happening in memory using the GNU Debugger (gdb) with the special command rust-gdb:</description>
+      <content:encoded><![CDATA[<p>Now it is time to talk about references and borrowing. To understand this topic, first check out this <a href="/posts/move_semantics/">post</a> where I talk about ownership and move semantics. As we have seen in the named article, the way Rust manages memory allocations is rather unique. This is also true when we talk about referencing some place in the memory, something that can be achieved in C with pointers.</p>
+<h3 id="gdb">GDB</h3>
+<p>In this post I am going to explore what is happening in memory using the <a href="https://en.wikipedia.org/wiki/GNU_Debugger">GNU Debugger (gdb)</a> with the special command <code>rust-gdb</code>:</p>
+<h1 id="what-is-a-reference-in-rust">What is a reference in Rust?</h1>
+<p>A reference is a value that points to data in memory. Although it is similar to a classic pointer there is a crucial difference between the two: a reference is guaranteed to always point to a memory address that contains a valid piece of data whereas pointers are not¹. The checks performed to guarantee that a reference is always valid is done at <strong>compile time</strong>.</p>
+<p>Consider the following code:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Create a new value, with s1 as owner
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">let</span> s1 <span style="color:#f92672">=</span> String::from(<span style="color:#e6db74">&#34;hello world!&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Create a reference of s1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">let</span> s2 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>s1;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Print the s2 value
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    println!(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, s2);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>This code compiles and runs correctly. What happens in memory? Let’s check it out with GDB!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Breakpoint 1, references_and_borrowing::main <span style="color:#f92672">()</span> at src/main.rs:3
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3</span>           let s1 <span style="color:#f92672">=</span> String::from<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello world!&#34;</span><span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> n
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">5</span>           let s2 <span style="color:#f92672">=</span> &amp;s1;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> n
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">8</span>           println!<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;{}&#34;</span>, s2<span style="color:#f92672">)</span>;
+</span></span></code></pre></div><p>At this point, the <code>String</code> <code>s1</code> is initialized with the text <code>&quot;hello world!</code> and the <code>s1</code>&rsquo;s reference named <code>s2</code> is set. Let&rsquo;s check the stack:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span></span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span></span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span></span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>0x7fffffffd920: <span style="color:#ae81ff">56</span>      <span style="color:#ae81ff">217</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd928: <span style="color:#ae81ff">112</span>     <span style="color:#ae81ff">251</span>     <span style="color:#ae81ff">90</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd930: <span style="color:#ae81ff">32</span>      <span style="color:#ae81ff">208</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">247</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span>0x7fffffffd938: <span style="color:#ae81ff">160</span>     <span style="color:#ae81ff">251</span>     <span style="color:#ae81ff">90</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span>0x7fffffffd940: <span style="color:#ae81ff">12</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span>0x7fffffffd948: <span style="color:#ae81ff">12</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span>0x7fffffffd950: <span style="color:#ae81ff">56</span>      <span style="color:#ae81ff">217</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd958: <span style="color:#ae81ff">128</span>     <span style="color:#ae81ff">167</span>     <span style="color:#ae81ff">218</span>     <span style="color:#ae81ff">247</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd960: <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd968: <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>The lines 4 to 6 is the representation of s1 in the stack: <code>0x7fffffffd938</code> is <strong><code>ptr</code></strong>, <code>0x7fffffffd940</code> is <strong><code>len</code></strong> and <code>0x7fffffffd948</code> is <strong><code>capacity</code></strong>. The reference to <code>s1</code> is located at <code>0x7fffffffd950</code>. Let&rsquo;s print the address value in hexadecimal:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/xg 0x7fffffffd950
+</span></span><span style="display:flex;"><span>0x7fffffffd950: 0x00007fffffffd938
+</span></span></code></pre></div><p>As we can see, the value contained in the address <code>0x7fffffffd950</code> is <code>0x00007fffffffd938</code>², the beginning of the <code>s1</code>&rsquo;s stack representation!</p>
+<p><img loading="lazy" src="/images/references_and_borrowing/reference.png#center" alt="Reference un memory"  />
+</p>
+<p>¹ An invalid memory region refers to a region that was not assigned to our process or memory that was valid at some point of the program execution but then was freed. <br>
+² Zeroes are trimmed for legibility when printed as a memory address by GDB.</p>
+<h2 id="the-two-rules-of-references">The two rules of references</h2>
+<p>As everything in Rust, references have their own set of rules.</p>
+<ol>
+<li>References are always valid.</li>
+<li>At any given time we either have any number of immutable references or one mutable reference.</li>
+</ol>
+<h3 id="references-are-always-valid">References are always valid</h3>
+<p>There&rsquo;s no way of testing this rule at runtime (or at least I don&rsquo;t know one). As I stated earlier in this post, references are guaranteed to always be valid and this validation is done at compile time.</p>
+<h3 id="at-any-given-time-we-either-have-any-number-of-immutable-references-or-one-mutable-reference">At any given time we either have any number of immutable references or one mutable reference</h3>
+<p>At first glance, this rule feels like an unnecessary limitation but thanks to it we are able to catch hidden bugs in our code because <a href="https://en.wikipedia.org/wiki/Race_condition#Data_race">data races</a> are avoided at compile time.</p>
+<p>A classic example is the one where we have <code>n</code> mutable references of the same piece of numeric data that represents a counter, all in different threads. The only thing the threads do is increment the counter. References by themselves do not have a synchronization mechanism. This is the concurrent counter problem, <a href="https://knowledgebasement.com/what-are-concurrency-problems-and-how-to-avoid-them-in-java/">here&rsquo;s the whole explanation and an example code in Java</a>. This can&rsquo;t happen in Rust (code won&rsquo;t compile) since we need some kind of <a href="https://doc.rust-lang.org/std/sync/struct.Mutex.html">synchronization mechanism</a> to mutate the same piece of data in different threads.</p>
+<p>This is not the only problem this rule keeps us away from! In fact, we don&rsquo;t even need concurrency, it can avoid bugs in simpler situations. Consider the following code in python:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insert_even_zeros</span>(vec):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (n,i) <span style="color:#f92672">in</span> enumerate(vec):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> n <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>            vec<span style="color:#f92672">.</span>insert(i, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>vec <span style="color:#f92672">=</span> list(range(<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">7</span>)) <span style="color:#75715e"># [1, 2, 3, 4, 5, 6]</span>
+</span></span><span style="display:flex;"><span>print(vec)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>What we are trying to do here is to insert a <code>0</code> at the index of a value, if the value is an even number. The expected result for the input <code>[1, 2, 3, 4, 5, 6]</code> is <code>[1, 0, 2, 3, 0, 4, 5, 0, 6]</code> but if we run it, we get <code>[1, 0, 0, 0, 0, 0, 0, 2, 3, 4, 5, 6]</code>. What is happening? The source of the problem resides in the fact that we are mutating the vector while iterating it:</p>
+<ol>
+<li>We start at index <code>0</code> where the value <code>1</code> is located, since <code>1</code> is not even we continue to index <code>1</code>.</li>
+<li>At index <code>1</code> we find value <code>2</code>. It is even so we insert a <code>0</code> at index <code>1</code>. Now the array is: <code>[1, 0, 2, 3, 4, 5, 6]</code>. We continue to index <code>2</code>.</li>
+<li>At index <code>2</code> we find the value <code>2</code> again, because it was moved from its original position in the previous iteration. It is even so we insert a <code>0</code> at index <code>2</code>. Now the array is: <code>[1, 0, 0, 2, 3, 4, 5, 6]</code>.</li>
+<li>This process is repeated 4 more times since the array length is 6 and how many iterations are going to be executed is calculated at the beginning of the <code>for</code> statement.</li>
+</ol>
+<p>This is known as the <em>iterator invalidation</em> problem.</p>
+<p>What happens in Rust?</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">insert_even_zeros</span>(vec: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (i, n) <span style="color:#66d9ef">in</span> vec.iter().enumerate() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> n <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>            vec.insert(i, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> v: Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> (<span style="color:#ae81ff">1</span><span style="color:#f92672">..=</span><span style="color:#ae81ff">6</span>).collect(); <span style="color:#75715e">// [1, 2, 3, 4, 5, 6]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    insert_even_zeros(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> v);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>We get a compilation error that enforces the rule!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>error<span style="color:#f92672">[</span>E0502<span style="color:#f92672">]</span>: cannot borrow <span style="color:#e6db74">`</span>*vec<span style="color:#e6db74">`</span> as mutable because it is also borrowed as immutable
+</span></span><span style="display:flex;"><span> --&gt; src/main.rs:4:13
+</span></span><span style="display:flex;"><span>  |
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span> |     <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>i, n<span style="color:#f92672">)</span> in vec.iter<span style="color:#f92672">()</span>.enumerate<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  |                   ----------------------
+</span></span><span style="display:flex;"><span>  |                   |
+</span></span><span style="display:flex; background-color:#3c3d38"><span>  |                   immutable borrow occurs here
+</span></span><span style="display:flex; background-color:#3c3d38"><span>  |                   immutable borrow later used here
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3</span> |         <span style="color:#66d9ef">if</span> n % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">4</span> |             vec.insert<span style="color:#f92672">(</span>i, 0<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex; background-color:#3c3d38"><span>  |             ^^^^^^^^^^^^^^^^ mutable borrow occurs here
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>For more information about this error, try <span style="color:#e6db74">`</span>rustc --explain E0502<span style="color:#e6db74">`</span>.
+</span></span></code></pre></div><p>Where are the mutable and immutable references? In the vector&rsquo;s function signatures:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.iter"><code>.iter()</code></a> takes an immutable reference of the vector (<code>&amp;self</code>):</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">iter</span>(<span style="color:#f92672">&amp;</span>self) -&gt; <span style="color:#a6e22e">Iter</span><span style="color:#f92672">&lt;</span>&#39;_, T<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><ul>
+<li><a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.insert"><code>.insert()</code></a> takes a mutable reference of the vector (<code>&amp;mut self</code>):</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">insert</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> self, index: <span style="color:#66d9ef">usize</span>, element: <span style="color:#a6e22e">T</span>)
+</span></span></code></pre></div><p>Does this mean that there&rsquo;s no way of modifying a vector in Rust while iterating it? No! You can do it:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> v: Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> (<span style="color:#ae81ff">1</span><span style="color:#f92672">..=</span><span style="color:#ae81ff">6</span>).collect();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> i: <span style="color:#66d9ef">usize</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex; background-color:#3c3d38"><span>    <span style="color:#66d9ef">let</span> v_len <span style="color:#f92672">=</span> v.len();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> i <span style="color:#f92672">&lt;</span> v_len {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> v[i] <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex; background-color:#3c3d38"><span>            v.insert(i, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>We also have two references, one immutable (<code>len</code> function) and one mutable (<code>insert</code> function). Why does it work? Because the scope of the immutable reference that is in <code>len</code> ends right after it the function is used (the scope of a reference begins at its creation and extends until the last time the reference is used).</p>
+<p>Notice that the error message we got with the <code>for</code> loop says &ldquo;<code>immutable borrow occurs here</code>&rdquo; and &ldquo;<code>immutable borrow later used here</code>&rdquo;. Both errors come from the same place, the <code>iter()</code> function, where the immutable reference is used.</p>
+<p>Does it make sense for a programming language to have these kinds of rules if it is possible to write code to circumvent them? Yes! The way the last code is written is rather &ldquo;unnatural&rdquo;. Most of the time Rust will catch bugs at compile time thanks to these rules.</p>
+<h1 id="borrowing">Borrowing</h1>
+<p>There are times when you don&rsquo;t want a specific scope to lose ownership of a value. There could be several reasons for that, for example, you need to reuse the value. Consider the following code:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">hello</span>(s: String) {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;hello </span><span style="color:#e6db74">{s}</span><span style="color:#e6db74">.&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">bye</span>(s: String) {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;bye </span><span style="color:#e6db74">{s}</span><span style="color:#e6db74">.&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> s <span style="color:#f92672">=</span> String::from(<span style="color:#e6db74">&#34;fellow blog reader&#34;</span>);
+</span></span><span style="display:flex;"><span>    hello(s);
+</span></span><span style="display:flex;"><span>    bye(s);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>This code won&rsquo;t compile:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>error<span style="color:#f92672">[</span>E0382<span style="color:#f92672">]</span>: use of moved value: <span style="color:#e6db74">`</span>s<span style="color:#e6db74">`</span>
+</span></span><span style="display:flex;"><span>  --&gt; src/main.rs:12:9
+</span></span><span style="display:flex;"><span>   |
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">10</span> |     let s <span style="color:#f92672">=</span> String::from<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;fellow blog reader&#34;</span><span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>   |         - move occurs because <span style="color:#e6db74">`</span>s<span style="color:#e6db74">`</span> has type <span style="color:#e6db74">`</span>String<span style="color:#e6db74">`</span>, which does not implement the <span style="color:#e6db74">`</span>Copy<span style="color:#e6db74">`</span> trait
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">11</span> |     hello<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>   |           - value moved here
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">12</span> |     bye<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>   |         ^ value used here after move
+</span></span><span style="display:flex;"><span>   |
+</span></span><span style="display:flex;"><span>note: consider changing this parameter type in <span style="color:#66d9ef">function</span> <span style="color:#e6db74">`</span>hello<span style="color:#e6db74">`</span> to borrow instead <span style="color:#66d9ef">if</span> owning the value isn<span style="color:#960050;background-color:#1e0010">&#39;</span>t necessary
+</span></span><span style="display:flex;"><span>  --&gt; src/main.rs:1:13
+</span></span><span style="display:flex;"><span>   |
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span>  | fn hello<span style="color:#f92672">(</span>s: String<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>   |    -----    ^^^^^^ this parameter takes ownership of the value
+</span></span><span style="display:flex;"><span>   |    |
+</span></span><span style="display:flex;"><span>   |    in this <span style="color:#66d9ef">function</span>
+</span></span><span style="display:flex;"><span>help: consider cloning the value <span style="color:#66d9ef">if</span> the performance cost is acceptable
+</span></span><span style="display:flex;"><span>   |
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">11</span> |     hello<span style="color:#f92672">(</span>s.clone<span style="color:#f92672">())</span>;
+</span></span><span style="display:flex;"><span>   |            ++++++++
+</span></span></code></pre></div><p>Here we have a similar situation as we had <a href="/posts/move_semantics/#rule-2-theres-only-one-owner-per-value">here</a>. As the compiler error says, we are moving <code>s</code> into <code>hello</code>, so when we try to use it in <code>bye</code> we get the <a href="https://doc.rust-lang.org/error_codes/E0382.html">&ldquo;use after move&rdquo;</a> error. How can we solve this?</p>
+<h3 id="solution-1-duplicating-the-value">Solution 1: Duplicating the value</h3>
+<p>We can do as the compiler says, and <a href="https://doc.rust-lang.org/std/clone/trait.Clone.html">clone</a> the value. This way, both functions get a separate copy of the value that they can own:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">hello</span>(s: String) {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;hello </span><span style="color:#e6db74">{s}</span><span style="color:#e6db74">.&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">bye</span>(s: String) {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;bye </span><span style="color:#e6db74">{s}</span><span style="color:#e6db74">.&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> s <span style="color:#f92672">=</span> String::from(<span style="color:#e6db74">&#34;fellow blog reader&#34;</span>);
+</span></span><span style="display:flex; background-color:#3c3d38"><span>    hello(s.clone());
+</span></span><span style="display:flex;"><span>    bye(s);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>This works! the code compiles and executes without a warning. Is this a good solution? No.</p>
+<p>We don&rsquo;t really need to duplicate <code>s</code> since we are only reading it to print it out. This solution does a lot of extra work by duplicating <code>s</code>&rsquo;s value in memory.</p>
+<h3 id="solution-2-returning-the-ownership-back-to-the-caller">Solution 2: Returning the ownership back to the caller</h3>
+<p>Instead of duplicating <code>s</code>&rsquo;s value, we can return the ownership to the caller, so it can use it again:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-rust" data-lang="rust"><span style="display:flex; background-color:#3c3d38"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">hello</span>(s: String) -&gt; String {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;hello </span><span style="color:#e6db74">{s}</span><span style="color:#e6db74">.&#34;</span>);
+</span></span><span style="display:flex; background-color:#3c3d38"><span>    s
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">bye</span>(s: String) {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;bye </span><span style="color:#e6db74">{s}</span><span style="color:#e6db74">.&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> s <span style="color:#f92672">=</span> String::from(<span style="color:#e6db74">&#34;fellow blog reader&#34;</span>);
+</span></span><span style="display:flex; background-color:#3c3d38"><span>    <span style="color:#66d9ef">let</span> s2 <span style="color:#f92672">=</span> hello(s);
+</span></span><span style="display:flex; background-color:#3c3d38"><span>    bye(s2);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>This also works! the code compiles and executes without a warning. Is this a good solution? Also no.</p>
+<p>Passing ownership back and forth functions is not a very comfortable and idiomatic way of doing things. On top of that, the function signatures are not semantically accurate. The signature of <code>hello</code> suggests that we pass an <code>String</code> value and returns back another <code>String</code> value. By just looking at it, it is hard to understand what the function intends to do and it does not make sense to return anything if the only objective of the function is only to print something.</p>
+<h3 id="solution-3-borrowing">Solution 3: Borrowing</h3>
+<p>We need to keep the ownership of <code>s</code> in the scope of the <code>main</code> function, we don&rsquo;t want to duplicate values and we don&rsquo;t want to move the values back and forth either. What can we do? use <a href="/posts/references_and_borrowing/#what-is-a-reference-in-rust">a reference</a>!</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">hello</span>(s: <span style="color:#66d9ef">&amp;</span>String) {
+</span></span><span style="display:flex; background-color:#3c3d38"><span>    println!(<span style="color:#e6db74">&#34;hello </span><span style="color:#e6db74">{s}</span><span style="color:#e6db74">.&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">bye</span>(s: <span style="color:#66d9ef">&amp;</span>String) {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;bye </span><span style="color:#e6db74">{s}</span><span style="color:#e6db74">.&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> s <span style="color:#f92672">=</span> String::from(<span style="color:#e6db74">&#34;fellow blog reader&#34;</span>);
+</span></span><span style="display:flex; background-color:#3c3d38"><span>    hello(<span style="color:#f92672">&amp;</span>s);
+</span></span><span style="display:flex; background-color:#3c3d38"><span>    bye(<span style="color:#f92672">&amp;</span>s);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>The code compiles and executes without a warning. Is this a good solution? Yes.</p>
+<p>Given that we only need to read the value, we don&rsquo;t want to move it or duplicate it, using a reference is the best solution. Also, it is more idiomatic and semantically correct. By looking at the function&rsquo;s signatures we know that they do not need to own any value and they will not return any result from the operation they are performing.</p>
+<p>Let&rsquo;s now check what is happening in the memory with GDB:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span></span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span></span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Breakpoint 1, references_and_borrowing::main <span style="color:#f92672">()</span> at src/main.rs:10
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">10</span>          let s <span style="color:#f92672">=</span> String::from<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;fellow blog reader&#34;</span><span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> n
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">11</span>          hello<span style="color:#f92672">(</span>&amp;s<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/80ub $sp
+</span></span><span style="display:flex;"><span>0x7fffffffd970: <span style="color:#ae81ff">2</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd978: <span style="color:#ae81ff">128</span>     <span style="color:#ae81ff">217</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span>0x7fffffffd980: <span style="color:#ae81ff">160</span>     <span style="color:#ae81ff">251</span>     <span style="color:#ae81ff">90</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span>0x7fffffffd988: <span style="color:#ae81ff">18</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span>0x7fffffffd990: <span style="color:#ae81ff">18</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd998: <span style="color:#ae81ff">48</span>      <span style="color:#ae81ff">251</span>     <span style="color:#ae81ff">90</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd9a0: <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd9a8: <span style="color:#ae81ff">59</span>      <span style="color:#ae81ff">216</span>     <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd9b0: <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">240</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd9b8: <span style="color:#ae81ff">48</span>      <span style="color:#ae81ff">251</span>     <span style="color:#ae81ff">90</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Looks like our <code>String</code> representation in the stack starts at <code>0x7fffffffd980</code>. Let&rsquo;s confirm it.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/xg 0x7fffffffd980
+</span></span><span style="display:flex;"><span>0x7fffffffd980: 0x00005555555afba0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/18c 0x00005555555afba0
+</span></span><span style="display:flex;"><span>0x5555555afba0: <span style="color:#ae81ff">102</span> <span style="color:#e6db74">&#39;f&#39;</span> <span style="color:#ae81ff">101</span> <span style="color:#e6db74">&#39;e&#39;</span> <span style="color:#ae81ff">108</span> <span style="color:#e6db74">&#39;l&#39;</span> <span style="color:#ae81ff">108</span> <span style="color:#e6db74">&#39;l&#39;</span> <span style="color:#ae81ff">111</span> <span style="color:#e6db74">&#39;o&#39;</span> <span style="color:#ae81ff">119</span> <span style="color:#e6db74">&#39;w&#39;</span> <span style="color:#ae81ff">32</span> <span style="color:#e6db74">&#39; &#39;</span>  <span style="color:#ae81ff">98</span> <span style="color:#e6db74">&#39;b&#39;</span>
+</span></span><span style="display:flex;"><span>0x5555555afba8: <span style="color:#ae81ff">108</span> <span style="color:#e6db74">&#39;l&#39;</span> <span style="color:#ae81ff">111</span> <span style="color:#e6db74">&#39;o&#39;</span> <span style="color:#ae81ff">103</span> <span style="color:#e6db74">&#39;g&#39;</span> <span style="color:#ae81ff">32</span> <span style="color:#e6db74">&#39; &#39;</span>  <span style="color:#ae81ff">114</span> <span style="color:#e6db74">&#39;r&#39;</span> <span style="color:#ae81ff">101</span> <span style="color:#e6db74">&#39;e&#39;</span> <span style="color:#ae81ff">97</span> <span style="color:#e6db74">&#39;a&#39;</span>  <span style="color:#ae81ff">100</span> <span style="color:#e6db74">&#39;d&#39;</span>
+</span></span><span style="display:flex;"><span>0x5555555afbb0: <span style="color:#ae81ff">101</span> <span style="color:#e6db74">&#39;e&#39;</span> <span style="color:#ae81ff">114</span> <span style="color:#e6db74">&#39;r&#39;</span>
+</span></span></code></pre></div><p>Excellent, now let&rsquo;s continue with the program execution and check what&rsquo;s in <code>hello</code> function&rsquo;s stack:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Breakpoint 2, references_and_borrowing::hello <span style="color:#f92672">(</span>s<span style="color:#f92672">=</span>0x7fffffffd980<span style="color:#f92672">)</span> at src/main.rs:2
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span>           println!<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello {s}.&#34;</span><span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/80ub $sp
+</span></span><span style="display:flex;"><span>0x7fffffffd900: <span style="color:#ae81ff">128</span>     <span style="color:#ae81ff">217</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd908: <span style="color:#ae81ff">140</span>     <span style="color:#ae81ff">201</span>     <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd910: <span style="color:#ae81ff">32</span>      <span style="color:#ae81ff">208</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">247</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd918: <span style="color:#ae81ff">128</span>     <span style="color:#ae81ff">217</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex; background-color:#3c3d38"><span>0x7fffffffd920: <span style="color:#ae81ff">128</span>     <span style="color:#ae81ff">217</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd928: <span style="color:#ae81ff">154</span>     <span style="color:#ae81ff">177</span>     <span style="color:#ae81ff">222</span>     <span style="color:#ae81ff">247</span>     <span style="color:#ae81ff">255</span>     <span style="color:#ae81ff">127</span>     <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd930: <span style="color:#ae81ff">160</span>     <span style="color:#ae81ff">251</span>     <span style="color:#ae81ff">90</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd938: <span style="color:#ae81ff">18</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd940: <span style="color:#ae81ff">18</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>0x7fffffffd948: <span style="color:#ae81ff">213</span>     <span style="color:#ae81ff">192</span>     <span style="color:#ae81ff">89</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">85</span>      <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/xg 0x7fffffffd920
+</span></span><span style="display:flex;"><span>0x7fffffffd920: 0x00007fffffffd980
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>At <code>0x7fffffffd920</code> found a pointer pointing to <code>s</code> in <code>main</code>&rsquo;s stack (<code>0x7fffffffd920: 0x00007fffffffd980</code>)! We can confirm that the whole representation still belongs to <code>main</code>&rsquo;s scope and, in <code>hello</code> and <code>bye</code> functions, we are just referencing it. <code>s</code>memory will be freed once <code>main</code> finishes.</p>
+<p><img loading="lazy" src="/images/references_and_borrowing/s_string.png#center" alt="Borrowing in memory"  />
+</p>
+<p>There&rsquo;s no need to change the scope to borrow a value: the <a href="/posts/references_and_borrowing/#what-is-a-reference-in-rust">code used in the previous section</a>, is just a slight modification of an <a href="/posts/move_semantics/#rule-2-theres-only-one-owner-per-value">example used in a previous post</a> that did not compile. We fixed it by borrowing <code>s1</code>&rsquo;s value to <code>s2</code>.</p>
+<h1 id="conclusion">Conclusion</h1>
+<p>Sometimes we have a hard time fighting the Rust compiler because it usually fails with errors that do not exist in other programming languages. Those errors feel arbitrary but, as we have seen in this post, they are there to protect us. It can take some time to wrap your head around them.</p>
+<p>The more you code in Rust, the less you fight with the compiler and you end up with more performant and more secure programs. Also, a lot of errors are catched at compile time, saving us a lot of precious debugging time.</p>
+<p>This post concludes a series of post about how Rust handles memory the internals of it:</p>
+<ol>
+<li><a href="/posts/stack_and_heap/">Stack and Heap</a></li>
+<li><a href="/posts/move_semantics/">Rust ownership and move semantics from the inside</a></li>
+<li><a href="/posts/references_and_borrowing/">Rust references and borrowing from the inside</a></li>
+</ol>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Rust ownership and move semantics from the inside</title>
       <link>https://nicoan.github.io/posts/move_semantics/</link>
       <pubDate>Tue, 18 Oct 2022 12:00:00 -0300</pubDate>
       <guid>https://nicoan.github.io/posts/move_semantics/</guid>
       <description>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a post about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&amp;rsquo;t have to worry about in other languages.</description>
-      <content:encoded><![CDATA[<p>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a <a href="/posts/stack_and_heap">post</a> about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&rsquo;t have to worry about in other languages. Enough introduction, let&rsquo;s cut to the chase!</p>
+      <content:encoded><![CDATA[<p>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a <a href="/posts/stack_and_heap/">post</a> about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&rsquo;t have to worry about in other languages. Enough introduction, let&rsquo;s cut to the chase!</p>
 <h1 id="the-three-rules-of-ownership">The three rules of ownership</h1>
 <p>There are three rules that governs the ownership system:</p>
 <ol>
@@ -34,7 +506,7 @@
 <li><strong>capacity</strong>: The total amount of memory, in bytes, allocated for that string.</li>
 </ul>
 <h3 id="gdb">GDB</h3>
-<p>In this post, I am going to explore what is happening in memory using the <a href="https://en.wikipedia.org/wiki/GNU_Debugger">GNU Debugger (gdb)</a> with  the special command <code>rust-gdb</code>:</p>
+<p>In this post, I am going to explore what is happening in memory using the <a href="https://en.wikipedia.org/wiki/GNU_Debugger">GNU Debugger (gdb)</a> with the special command <code>rust-gdb</code>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ rust-gdb ./target/debug/move_semantics
 </span></span></code></pre></div><p>I am going to use the <a href="https://visualgdb.com/gdbreference/commands/x">x command</a> a lot to explore the stack and the <code>$sp</code> value (refers to the Stack Pointer).</p>
 <h2 id="rule-1-every-initialized-value-has-an-owner">Rule 1: Every initialized value has an owner.</h2>
@@ -72,7 +544,7 @@
 </span></span><span style="display:flex;"><span>  |
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">=</span> note: <span style="color:#e6db74">`</span><span style="color:#75715e">#[warn(unused_must_use)]` on by default</span>
 </span></span></code></pre></div><p>Rust warns us that we must use the returned value of the <code>String::from</code> function, otherwise, we can&rsquo;t access it in any way. What happens in memory? Let&rsquo;s check it out with GDB!</p>
-<p>First, we set a breakpoint at the begginning of the <code>hello_world</code> function and execute the <code>String</code> initialization:</p>
+<p>First, we set a breakpoint at the beginning of the <code>hello_world</code> function and execute the <code>String</code> initialization:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Breakpoint 1, move_semantics::hello_world <span style="color:#f92672">()</span> at src/main.rs:2
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span>           String::from<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello! I am a free initialized String!&#34;</span><span style="color:#f92672">)</span>;
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> n
@@ -355,9 +827,9 @@
       <link>https://nicoan.github.io/posts/stack_and_heap/</link>
       <pubDate>Tue, 26 Jul 2022 12:00:00 -0300</pubDate>
       <guid>https://nicoan.github.io/posts/stack_and_heap/</guid>
-      <description>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through ownership. Then I thought &amp;ldquo;I should first write about Stack and Heap&amp;rdquo;. So, here we are :).
+      <description>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through ownership. Then I thought &amp;ldquo;I should first write about Stack and Heap&amp;rdquo;. So, here we are).
 To understand memory management first, we need to understand what the Stack and the Heap are.</description>
-      <content:encoded><![CDATA[<p>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through <a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">ownership</a>. Then I thought &ldquo;I should first write about Stack and Heap&rdquo;. So, here we are :).</p>
+      <content:encoded><![CDATA[<p>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through <a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">ownership</a>. Then I thought &ldquo;I should first write about Stack and Heap&rdquo;. So, here we are).</p>
 <p>To understand memory management first, we need to understand what the Stack and the Heap are. Stack and Heap are memory regions used by a process to store and read values. The memory of a running process can usually be divided in the following four regions:</p>
 <p><img loading="lazy" src="/images/stack/memory.png#center" alt="Memory Regions"  />
 </p>
