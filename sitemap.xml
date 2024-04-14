@@ -1,18 +1,36 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
-  <sitemap>
-    <loc>https://nicoan.github.io/en/sitemap.xml</loc>
-    
-      <lastmod>2024-03-24T12:00:00-03:00</lastmod>
-    
-  </sitemap>
-  
-  <sitemap>
-    <loc>https://nicoan.github.io/es/sitemap.xml</loc>
-    
-      <lastmod>2022-10-18T12:00:00-03:00</lastmod>
-    
-  </sitemap>
-  
-</sitemapindex>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://nicoan.github.io/posts/references_and_borrowing/</loc>
+    <lastmod>2024-03-24T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.github.io/posts/move_semantics/</loc>
+    <lastmod>2022-10-18T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.github.io/posts/move_semantics.es/</loc>
+    <lastmod>2022-10-18T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.github.io/posts/stack_and_heap/</loc>
+    <lastmod>2022-07-26T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.github.io/posts/stack_and_heap.es/</loc>
+    <lastmod>2022-07-26T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.github.io/</loc>
+    <lastmod>2024-03-24T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.github.io/posts/</loc>
+    <lastmod>2024-03-24T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.github.io/es/blog/</loc>
+  </url><url>
+    <loc>https://nicoan.github.io/blog/</loc>
+  </url><url>
+    <loc>https://nicoan.github.io/categories/</loc>
+  </url><url>
+    <loc>https://nicoan.github.io/series/</loc>
+  </url><url>
+    <loc>https://nicoan.github.io/tags/</loc>
+  </url>
+</urlset>
