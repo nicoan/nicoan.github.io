@@ -83,7 +83,7 @@ GDB In this post I am going to explore what is happening in memory using the GNU
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/xg 0x7fffffffd950
 </span></span><span style="display:flex;"><span>0x7fffffffd950: 0x00007fffffffd938
 </span></span></code></pre></div><p>As we can see, the value contained in the address <code>0x7fffffffd950</code> is <code>0x00007fffffffd938</code>², the beginning of the <code>s1</code>&rsquo;s stack representation!</p>
-<p><img loading="lazy" src="/images/references_and_borrowing/reference.png#center" alt="Reference un memory"  />
+<p><img loading="lazy" src="/images/references_and_borrowing/reference.png#center" alt="Reference in memory"  />
 </p>
 <p>¹ An invalid memory region refers to a region that was not assigned to our process or memory that was valid at some point of the program execution but then was freed. <br>
 ² Zeroes are trimmed for legibility when printed as a memory address by GDB.</p>
@@ -471,7 +471,7 @@ GDB In this post I am going to explore what is happening in memory using the GNU
 <p>There&rsquo;s no need to change the scope to borrow a value: the <a href="/posts/references_and_borrowing/#what-is-a-reference-in-rust">code used in the previous section</a>, is just a slight modification of an <a href="/posts/move_semantics/#rule-2-theres-only-one-owner-per-value">example used in a previous post</a> that did not compile. We fixed it by borrowing <code>s1</code>&rsquo;s value to <code>s2</code>.</p>
 <h1 id="conclusion">Conclusion</h1>
 <p>Sometimes we have a hard time fighting the Rust compiler because it usually fails with errors that do not exist in other programming languages. Those errors feel arbitrary but, as we have seen in this post, they are there to protect us. It can take some time to wrap your head around them.</p>
-<p>The more you code in Rust, the less you fight with the compiler and you end up with more performant and more secure programs. Also, a lot of errors are catched at compile time, saving us a lot of precious debugging time.</p>
+<p>The more you code in Rust, the less you fight with the compiler and you end up with more performant and more secure programs. Also, a lot of errors are caught at compile time, saving us a lot of precious debugging time.</p>
 <p>This post concludes a series of post about how Rust handles memory the internals of it:</p>
 <ol>
 <li><a href="/posts/stack_and_heap/">Stack and Heap</a></li>
@@ -640,7 +640,7 @@ GDB In this post I am going to explore what is happening in memory using the GNU
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">7</span> |     println!<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;{}&#34;</span>, s1<span style="color:#f92672">)</span>;
 </span></span><span style="display:flex;"><span>  |                    ^^ value borrowed here after move
 </span></span></code></pre></div><p>What is happening here is that the ownership of the <code>String</code> <code>&quot;hello world!&quot;</code> is transferred from <code>s1</code> to <code>s2</code>. Because of that, the compiler invalidates the access to <code>s1</code>.</p>
-<p>The value was moved because the type <code>String</code> does not implement the <a href="https://doc.rust-lang.org/std/marker/trait.Copy.html">Copy</a> trait. This is used on types that can be <em>fully</em> allocated in the stack and can be duplicated by simply copying bits without much overload (duplicating data in the Heap is much more complicated). When a type implements the <code>Copy</code> trait, instead of having &ldquo;move semantics&rdquo; it has &ldquo;copy semantics&rdquo;. This is usally the case for primitive types:</p>
+<p>The value was moved because the type <code>String</code> does not implement the <a href="https://doc.rust-lang.org/std/marker/trait.Copy.html">Copy</a> trait. This is used on types that can be <em>fully</em> allocated in the stack and can be duplicated by simply copying bits without much overload (duplicating data in the Heap is much more complicated). When a type implements the <code>Copy</code> trait, instead of having &ldquo;move semantics&rdquo; it has &ldquo;copy semantics&rdquo;. This is usually the case for primitive types:</p>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
 <table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -691,7 +691,7 @@ GDB In this post I am going to explore what is happening in memory using the GNU
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><code>s1</code> allocation will have been freed when we reach line 7. This is because the curly braces at the beggining of the <code>main</code> function creates a new scope. Once the code reaches the end of it, all the variables that it contained get dropped. Let&rsquo;s check it out in GDB:</p>
+</div><p><code>s1</code> allocation will have been freed when we reach line 7. This is because the curly braces at the beginning of the <code>main</code> function creates a new scope. Once the code reaches the end of it, all the variables that it contained get dropped. Let&rsquo;s check it out in GDB:</p>
 <p>On line 4, we can find <code>s1</code> in the locals variables of the scope:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Breakpoint 1, move_semantics::main <span style="color:#f92672">()</span> at src/main.rs:4
 </span></span><span style="display:flex;"><span>4	        println!<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;{}&#34;</span>, s1<span style="color:#f92672">)</span>;
@@ -818,7 +818,7 @@ GDB In this post I am going to explore what is happening in memory using the GNU
 </span></span><span style="display:flex;"><span>0x5555555a5ad8:	<span style="color:#ae81ff">114</span> <span style="color:#e6db74">&#39;r&#39;</span>	<span style="color:#ae81ff">108</span> <span style="color:#e6db74">&#39;l&#39;</span>	<span style="color:#ae81ff">100</span> <span style="color:#e6db74">&#39;d&#39;</span>	<span style="color:#ae81ff">33</span> <span style="color:#e6db74">&#39;!&#39;</span>
 </span></span></code></pre></div><p>The <code>hello world!</code> string is there!</p>
 <h1 id="conclusion">Conclusion</h1>
-<p>It can take some time to get used to working with ownership and move semantics, but, in my opinion, that is well invested time. Manually mananging memory (by allocating and freeing it) is not an easy task and <a href="https://en.wikipedia.org/wiki/Manual_memory_management#Manual_management_and_correctness">can create several bugs</a>. With Rust&rsquo;s approach, those bugs are caught at compile time, so they can never happen!</p>
+<p>It can take some time to get used to working with ownership and move semantics, but, in my opinion, that is well invested time. Manually managing memory (by allocating and freeing it) is not an easy task and <a href="https://en.wikipedia.org/wiki/Manual_memory_management#Manual_management_and_correctness">can create several bugs</a>. With Rust&rsquo;s approach, those bugs are caught at compile time, so they can never happen!</p>
 <p>If you want to read more about this topic, check out the <a href="https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html">Rust book</a>.</p>
 ]]></content:encoded>
     </item>
