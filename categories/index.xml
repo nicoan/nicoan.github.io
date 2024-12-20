@@ -2,10 +2,32 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Categories on Nico Antinori</title>
-    <link>https://nicoan.github.io/categories/</link>
+    <link>https://nicoan.net/categories/</link>
     <description>Recent content in Categories on Nico Antinori</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <atom:link href="https://nicoan.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 02 Oct 2024 12:00:00 -0300</lastBuildDate>
+    <atom:link href="https://nicoan.net/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Optimizations</title>
+      <link>https://nicoan.net/categories/optimizations/</link>
+      <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/categories/optimizations/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Rust</title>
+      <link>https://nicoan.net/categories/rust/</link>
+      <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/categories/rust/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Low Level Programming</title>
+      <link>https://nicoan.net/categories/low-level-programming/</link>
+      <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/categories/low-level-programming/</guid>
+      <description></description>
+    </item>
   </channel>
 </rss>

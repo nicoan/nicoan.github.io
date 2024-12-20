@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Optimization on Nico Antinori</title>
+    <link>https://nicoan.net/tags/optimization/</link>
+    <description>Recent content in Optimization on Nico Antinori</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 02 Oct 2024 12:00:00 -0300</lastBuildDate>
+    <atom:link href="https://nicoan.net/tags/optimization/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Accelerating Rust compilation times: Dynamic linking, code generation and cache</title>
+      <link>https://nicoan.net/posts/accelerating_compile_times/</link>
+      <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/posts/accelerating_compile_times/</guid>
+      <description>Having a language that does a lot of checks at compile time is not free, it will impact compilation times. Luckily there are some things we can do to speed things up: Dynamic linking, be careful with code generation and caching dependencies.
+Dynamic linking is a somewhat difficult thing to achieve in Rust but not impossible. The main reason is that at the time of writing this (Sept-Oct 2024) Rust does not have its own stable ABI and it must rely on the C binary representation (if we want to inter-operate with other languages or other Rust versions).</description>
+      <content:encoded><![CDATA[<p>Having a language that does a lot of checks at compile time is not free, it will impact compilation times. Luckily there are some things we can do to speed things up: Dynamic linking, be careful with code generation and caching dependencies.</p>
+<p>Dynamic linking is a somewhat difficult thing to achieve in Rust but not impossible. The main reason is that at the time of writing this (Sept-Oct 2024) Rust does not have its own <a href="https://en.wikipedia.org/wiki/Application_binary_interface">stable ABI</a> and it must rely on the <a href="https://doc.rust-lang.org/nomicon/other-reprs.html#reprc">C binary representation</a> (if we want to inter-operate with other languages or <em>other Rust versions</em>). This has some interesting consequences that we will explore in this post.</p>
+<p><a href="https://rustc-dev-guide.rust-lang.org/overview.html#code-generation">Code generation</a> is when the high level representation of the source code is turned into binary code that can be executed by the machine. Given that the rust compiler uses <a href="https://llvm.org/">LLVM</a>, the level of optimizations and the quantity of generated code will affect the compilation speed.</p>
+<h1 id="what-is-linking">What is Linking?</h1>
+<p>Programs are usually divided into several modules and they have numerous dependencies. Linking is a compilation stage where all the compiled code of those modules needed by a program (and the code of the program itself) is made available in the final executable. We have two ways of linking a program: static and dynamic.</p>
+<h2 id="static-linking">Static Linking</h2>
+<p>All the code needed by a program (from external modules and the program itself) is put together in the final executable. This creates fat binaries but it makes the program portable.</p>
+<h2 id="dynamic-linking">Dynamic Linking</h2>
+<p>This type of linking must be supported by the operating system (most, if not all of the major operating systems support this). In this approach, instead of containing all the code needed, the executable contains undefined symbols and a list of objects that contain the code for those symbols.</p>
+<p>These objects, often referred to as libraries, are binary files used to share binary code between several programs. In Microsoft Windows those files are known as DLLs (dynamically-linked library) and in Unix operating systems (Linux, Mac OS, etc) are known as SOs (shred objects).</p>
+<p>When running a dynamically linked executable, the operating system loads the program code along with the libraries in memory and do the final linking.</p>
+<p>This approach creates “thin” binaries and saves disk and memory space, since the code from the libraries are shared among several applications.</p>
+<h2 id="different-linking-modes-in-rust">Different linking modes in Rust</h2>
+<p>There are several different linking modes that we can use, producing different kind of shared objects, but in this post we will focus only on one of them: <code>dylib</code>.</p>
+<p>If we put this configuration in our <em>library</em> crates, the Rust compiler will generate a dynamic library that will be dynamically linked with our executable. Isn’t that what we need? Why do we have other configurations?<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> Given that Rust does not have an stable ABI yet, there are no guarantees that the compiled libraries will work if we don’t compile the project with the same Rust version used for compiling the library.</p>
+<p>This mode is suitable for a project where we have one or more library crates that are used by several binary crates (or other libraries). We will usually compile everything altogether the first time and then recompile only the things we change. If we change the Rust version, we need to recompile everything.</p>
+<h1 id="compilation-stages">Compilation stages</h1>
+<p>To generate binary objects, Rust compiler must go through <a href="https://rustc-dev-guide.rust-lang.org/overview.html#what-the-compiler-does-to-your-code">several different stages</a>. I am not going to explain how a compiler works in detail, but having a general idea of what happens will help us identify places where we can work to optimize compile times.</p>
+<p>To measure compilation times, we will use the built-in cargo tool called <a href="https://doc.rust-lang.org/cargo/reference/timings.html"><em>timings</em></a>. This tool will generate a detailed HTML report showing how long every compilation unit takes to compile.</p>
+<h2 id="from-source-code-to-intermediate-representation">From source code to intermediate representation</h2>
+<p>In the timings report, the stages described below are pictured in light blue in the Grantt chart.</p>
+<h3 id="lexing-and-parsing">Lexing and parsing</h3>
+<p>The compiler first performs the <a href="https://rustc-dev-guide.rust-lang.org/overview.html#lexing-and-parsing">lexing and parsing stage</a>, where lexing is transforming the source code into an stream of tokens and parsing is generating an <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">AST (Abstract Syntax Tree)</a> from those tokens.</p>
+<p><a href="https://rustc-dev-guide.rust-lang.org/macro-expansion.html">Macro expansion</a> (generating valid Rust code from the macros) is also done at this stage.</p>
+<h3 id="ast-lowering">AST Lowering</h3>
+<p>After the AST is created, it is converted into a High Level Intermediate Representation (HIR), this stage is called <a href="https://rustc-dev-guide.rust-lang.org/overview.html#ast-lowering">AST Lowering</a>. In HIR the compiler does type inference, type checking and resolve traits.</p>
+<h3 id="mir-lowering">MIR Lowering</h3>
+<p>When HIR is ready, then we enter the <a href="https://rustc-dev-guide.rust-lang.org/overview.html#mir-lowering">MIR lowering stage</a>, that is, transforming HIR to Middle Level Representation (MIR). In this stage, the famous borrow checking is done, <a href="https://en.wikipedia.org/wiki/Monomorphization">code monomorphization</a>, and some optimizations that will improve code generation and compilation speed in that stage.</p>
+<h2 id="code-generation">Code generation</h2>
+<p>This stage is pictured in purple in the Grantt chart. When we are here, the compiler already has everything represented in MIR. During this phase, the MIR is transformed into LLVM-IR (LLVM Intermediate Representation) and handled to LLVM.</p>
+<p>LLVM does a lot more of optimizations and generates the assembler and binary code that later is linked into the final object.</p>
+<p>If you want to learn more about the compilation stages, check <a href="https://rustc-dev-guide.rust-lang.org/overview.html">this article</a>.</p>
+<h1 id="reducing-compile-times">Reducing compile times</h1>
+<h2 id="the-toy-project">The toy project</h2>
+<p>In order to show how to optimize compiling times, we are going to use a toy project that consist in one library crate and 40 separate binaries that use the library. You may ask yourself: What kind of project has that structure?! It could be a server-less project containing several cloud functions (like AWS Lambdas) that share functionality through some library crates or some project that consist in several binaries (like <a href="https://es.wikipedia.org/wiki/GNU_Core_Utilities">GNU Core utilities</a>).</p>
+<h2 id="how-i-get-the-timings">How I get the timings</h2>
+<p>The timings found on this posts are the last timing returned by cargo after running 10 times the same compilation, always doing <code>cargo clean</code> before executing <code>cargo build [...]</code>. I compile the project 10 times to verify that <em>on average</em> the compilation times are more or less the same.</p>
+<h2 id="initial-compile-times">Initial compile times</h2>
+<p>Here are the individual compile times for the toy project. This and further compilations were done in Debian 12, with an i7-6700K and 16GB DDR4 2600Mhz Ram <sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>:</p>
+<p><img loading="lazy" src="/images/accelerating_compile_times/1.png#center" alt="image.png"  />
+</p>
+<p>The total time was</p>
+<pre tabindex="0"><code>Finished `release` profile [optimized] target(s) in 25.30s
+</code></pre><p>And the size of the binaries is about 3.5MB:</p>
+<pre tabindex="0"><code>ls -l --block-size=KB ./target/release
+total 143262kB
+-rwxr-xr-x  2 nico nico 3489kB Sep 16 15:03 bin1
+-rwxr-xr-x  2 nico nico 3489kB Sep 16 15:03 bin10
+-rw-r--r--  1 nico nico    1kB Sep 16 15:04 bin10.d
+-rwxr-xr-x  2 nico nico 3489kB Sep 16 15:03 bin11
+-rw-r--r--  1 nico nico    1kB Sep 16 15:04 bin11.d
+-rwxr-xr-x  2 nico nico 3489kB Sep 16 15:03 bin12
+-rw-r--r--  1 nico nico    1kB Sep 16 15:04 bin12.d
+-rwxr-xr-x  2 nico nico 3489kB Sep 16 15:03 bin13
+</code></pre><p>The command used was <code>cargo build --release --timings</code>. You can check the source code of the toy project <a href="https://github.com/nicoan/compile_times_blogpost/tree/initial-stage">here</a>.</p>
+<h2 id="removing-unnecessary-dependencies">Removing unnecessary dependencies</h2>
+<p>It is common that in a project, the people involved usually forget about removing old dependencies. This happens because when projects are large, it is hard to know if a dependency is not used anymore. Luckily, we can use the <code>-Wunused-crate-dependencies</code> flag that tells us which dependencies are not being used by the crates inside the project. If we compile with <code>RUSTFLAGS=-Wunused-crate-dependencies cargo build --release --timings</code> we get the following output:</p>
+<pre tabindex="0"><code>...
+warning: external crate `actix` unused in `lib1`: remove the dependency or add `use actix as _;`
+  |
+  = note: requested on the command line with `-W unused-crate-dependencies`
+
+warning: external crate `serde_json` unused in `lib1`: remove the dependency or add `use serde_json as _;`
+
+warning: external crate `tokio` unused in `lib1`: remove the dependency or add `use tokio as _;`
+
+warning: `lib1` (lib) generated 3 warnings
+</code></pre><p>By removing the unused dependencies reported by the warnings, we reduced the <em>total</em> compilation time a little:</p>
+<pre tabindex="0"><code>Finished `release` profile [optimized] target(s) in 23.85s
+</code></pre><p>It is not much, but by not compiling those dependencies, we gained around 1.x seconds! To keep our project clean, we can use this flag in our CI/CD pipeline to warn us when we forget to remove an old dependency.</p>
+<p>You can find the modifications made in this section <a href="https://github.com/nicoan/compile_times_blogpost/tree/1-rm-unused-deps">here</a>.</p>
+<h2 id="removing-unnecessary-derives">Removing unnecessary derives</h2>
+<p>Macros create valid Rust code that then has to be parsed, transformed, validated and optimized. It may happen that you need to derive some trait, not because is used by productive code but is used by test code. It does not make sense to process that code in release builds.</p>
+<p>A nice “trick” to avoid processing that code in release builds is to derive it behind a <a href="https://doc.rust-lang.org/cargo/reference/features.html">cargo feature</a> and only activate that feature in the <code>[dev-dependencies]</code> section of the <code>Cargo.toml</code>. The  <code>Cargo.toml</code> from <code>lib1</code> was changed this way:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span>[<span style="color:#a6e22e">package</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">name</span> = <span style="color:#e6db74">&#34;lib1&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">version</span> = <span style="color:#e6db74">&#34;0.1.0&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">edition</span> = <span style="color:#e6db74">&#34;2021&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[<span style="color:#a6e22e">dependencies</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mockall</span> = { <span style="color:#a6e22e">workspace</span> = <span style="color:#66d9ef">true</span>, <span style="color:#a6e22e">optional</span> = <span style="color:#66d9ef">true</span> }
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">reqwest</span> = { <span style="color:#a6e22e">workspace</span> = <span style="color:#66d9ef">true</span> }
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">serde</span> =  { <span style="color:#a6e22e">workspace</span> = <span style="color:#66d9ef">true</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[<span style="color:#a6e22e">features</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">tests</span> = [<span style="color:#e6db74">&#34;dep:mockall&#34;</span>]
+</span></span></code></pre></div><p>And we put behind the <code>tests</code> feature, all the code we do not need in production <sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#75715e">#[cfg_attr(feature = </span><span style="color:#e6db74">&#34;tests&#34;</span><span style="color:#75715e">, mockall::automock)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">trait</span> Trait1 {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">fn1</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">fn2</span>(a: <span style="color:#66d9ef">u16</span>) -&gt; String;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">fn3</span>(a: String) -&gt; <span style="color:#66d9ef">u16</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#f92672">..</span>.
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[derive(Serialize, Default)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[cfg_attr(feature = </span><span style="color:#e6db74">&#34;tests&#34;</span><span style="color:#75715e">, derive(Deserialize, PartialEq, Eq, Debug))]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Struct1</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f1: <span style="color:#66d9ef">u8</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f2: String,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f3: <span style="color:#a6e22e">HashMap</span><span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f4: <span style="color:#a6e22e">HashSet</span><span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f5: Vec<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#f92672">..</span>.
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[derive(Deserialize, Default)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[cfg_attr(feature = </span><span style="color:#e6db74">&#34;tests&#34;</span><span style="color:#75715e">, derive(Serialize, PartialEq, Eq, Debug))]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Struct9</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f1: <span style="color:#66d9ef">u8</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f2: String,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f3: <span style="color:#a6e22e">HashMap</span><span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f4: <span style="color:#a6e22e">HashSet</span><span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> f5: Vec<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Activating the feature will work for both unit and integration tests. Here are the compilation times after introducing the flag:</p>
+<p><img loading="lazy" src="/images/accelerating_compile_times/2.png#center" alt="image.png"  />
+</p>
+<p>And the total time:</p>
+<pre tabindex="0"><code>Finished release profile [optimized] target(s) in 21.58s
+</code></pre><p>By reducing the code generated by the derives and <code>automock</code> macros, Rust have less code to translate to intermediate representation (light blue), code to generate (purple) and optimize. The time reduction was <strong>huge</strong>, from an average of 4.x seconds to an average of 0.3 seconds.</p>
+<p>The take-home lesson here is: do not take the auto generation of code. If you don’t need it in the production build, do not compile it.</p>
+<p>You can find the modifications made in this section <a href="https://github.com/nicoan/compile_times_blogpost/tree/2-rm-unused-derives">here</a>.</p>
+<h2 id="dynamic-linking-1">Dynamic Linking</h2>
+<p>Until now, the code contained in <code>lib1</code> is statically linked to all the binaries in our project. Instead of repeating the code in every binary, we can use dynamic linking to have <code>lib1</code> as a shared object, allowing the binaries to use the code without the need of having it embedded.</p>
+<p>With dynamic linking we will not only achieve faster compile times, we will also get smaller binaries and, if there’s a bug in the library, we can fix it and deploy the shared object without the need of modifying the binaries (as long as we use the same Rust version used to compile the binaries).</p>
+<p>To activate dynamic linking, we need to add to the <code>lib1</code>&rsquo;s <code>Cargo.toml</code> the following lines at the end:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span>[<span style="color:#a6e22e">lib</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">crate-type</span> = [<span style="color:#e6db74">&#34;dylib&#34;</span>]
+</span></span></code></pre></div><p>And compile ithe project t with: <code>RUSTFLAGS=&quot;-C prefer-dynamic&quot; cargo build --release --timings</code>. Here are the compilation times with dynamic linking:</p>
+<p><img loading="lazy" src="/images/accelerating_compile_times/3.png#center" alt="image.png"  />
+</p>
+<p>The compilation times for <code>lib1</code> increased <sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>, but for binaries times reduced from an average of 0.8x to an average of 0.3x! They were also reduced in size: from 3489 kB to 12 kB!</p>
+<pre tabindex="0"><code>ls -l --block-size=KB ./target/release
+total 7238kB
+-rwxr-xr-x  2 nico nico   12kB Sep 16 14:43 bin1
+-rwxr-xr-x  2 nico nico   12kB Sep 16 14:43 bin10
+-rw-r--r--  1 nico nico    1kB Sep 16 14:43 bin10.d
+-rwxr-xr-x  2 nico nico   12kB Sep 16 14:43 bin11
+-rw-r--r--  1 nico nico    1kB Sep 16 14:43 bin11.d
+-rwxr-xr-x  2 nico nico   12kB Sep 16 14:43 bin12
+...
+drwxr-xr-x  2 nico nico    5kB Sep 16 14:43 incremental
+-rw-r--r--  1 nico nico    1kB Sep 16 14:43 liblib1.d
+-rwxr-xr-x  2 nico nico 6555kB Sep 16 14:43 liblib1.so
+</code></pre><p>The total time was</p>
+<pre tabindex="0"><code>Finished `release` profile [optimized] target(s) in 19.74s
+</code></pre><p>If we check the libraries needed for any of our binaries, we are going to see a dependency with <code>liblib1.so</code>. <code>ldd</code> outputs &ldquo;not found&rdquo; because the shared object is located in the target directory at the moment of running the command and not in the usual paths where shared objects can be found (<code>/lib</code>, <code>/usr/lib</code> , <code>/usr/local/lib</code>) or in any of the paths listed in the <code>LD_LIBRARY_PATH</code> environment variable.</p>
+<pre tabindex="0"><code>$ ldd ./target/release/bin1
+        linux-vdso.so.1 (0x00007ffe573aa000)
+        liblib1.so =&gt; not found
+        libstd-52417a9a08ba8fb9.so =&gt; not found
+        libgcc_s.so.1 =&gt; /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fc19594a000)
+        libc.so.6 =&gt; /lib/x86_64-linux-gnu/libc.so.6 (0x00007fc195769000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fc195986000)
+</code></pre><p>You can find the modifications made in this section <a href="https://github.com/nicoan/compile_times_blogpost/tree/3-dynamic-linking">here</a>.</p>
+<h2 id="cache-dependencies">Cache dependencies</h2>
+<p>Most of the total compilation time was taken by the the project&rsquo;s dependencies. In this section we are going to explore two ways those dependencies can be cached so we avoid recompiling them every time we build it. This is specially useful in a continuous integration/deployment environment, where we are constantly compiling the project but the dependencies rarely change.</p>
+<h3 id="sccache">sccache</h3>
+<p><a href="https://github.com/mozilla/sccache">sccache</a> is a tool developed by Mozilla. It can be used with several compilers, not only rustc. It works as a wrapper of the compiler, chaching compiled things locally on disk and avoiding recompiling them if possible.</p>
+<p>To install it, we can run:</p>
+<pre tabindex="0"><code>$ cargo install sccache
+</code></pre><p>Then, we can use it by wrapping the <code>rustc</code> compiler with the <code>RUSTC_WRAPPER</code> environment variable:</p>
+<pre tabindex="0"><code>$ RUSTC_WRAPPER=sccache RUSTFLAGS=&#34;-C prefer-dynamic&#34; cargo build --release --timings
+</code></pre><p>We compiled the project with the dynamic linking activated. The first compilation took around 23 seconds, 3.x seconds more than last compilation but, in the first one, <code>sccache</code> was caching the compiled dependencies. After running <code>cargo clean</code> and recompiling the project again we get:</p>
+<pre tabindex="0"><code>Finished `release` profile [optimized] target(s) in 6.54s
+</code></pre><p>So, we dropped from an average of 19.x seconds to an average of 6.5x seconds!</p>
+<h3 id="cargo-chef">Cargo Chef</h3>
+<p><a href="https://crates.io/crates/cargo-chef/">cargo-chef</a> is an awesome tool created by <a href="https://www.lpalmieri.com/">Luca Palmieri</a>. It is designed to speed up compilation times when using containers to build the project. Basically, what it does under the hood is locate all the entry points of our workspace either for libs (<code>lib.rs</code>) or binaries (<code>main.rs</code>), remove all the code from them, leave some trivial code like</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#75715e">// main.rs
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {}
+</span></span></code></pre></div><p>and compile the project. In other words, it avoids compiling the source code from the project. It just compiles the dependencies to cache them. In future compilations, the dependencies will be already cached, so only the project’s business logic will be compiled.</p>
+<p><a href="https://crates.io/crates/cargo-chef/0.1.68#user-content-how-to-use">As stated in the official documentation</a> and in a warning if you try to use it locally, this is designed to be used with containers because it leverages on the Docker&rsquo;s layer cache mechanism to work. <strong>It is not recommended</strong> using it to compile the project locally.</p>
+<p>For demonstration purposes, I modified the Dockerfile suggested in the official cargo chef documentation:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> lukemathwalker/cargo-chef:latest-rust-1 AS chef</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /app</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> chef AS planner</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> . .<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> cargo chef prepare --recipe-path recipe.json<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> chef AS builder</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>planner /app/recipe.json recipe.json<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e"># Build dependencies - this is the caching Docker layer!</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> CARGO_TARGET_DIR<span style="color:#f92672">=</span>/app/cache RUSTFLAGS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-C prefer-dynamic&#34;</span> cargo chef cook --release --workspace --recipe-path recipe.json<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> . .<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENTRYPOINT</span> [<span style="color:#e6db74">&#34;/bin/sh&#34;</span>]<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>The image produced from this Dockerfile will contain all the project dependencies already cached in <code>/app/cache</code> directory. It is <strong>very important</strong> to use cargo chef with exactly the same configuration you are going to use to compile the project. Since we are using the dynamic linking branch for the demonstration, we must include the  <code>RUSTFLAGS=&quot;-C prefer-dynamic&quot;</code> flag.</p>
+<p>Here are the steps I followed:</p>
+<ol>
+<li>Build the image: <code>docker build --tag chef .</code></li>
+<li>Enter the container: <code>docker run -it chef</code></li>
+<li>Compile the project: <code>CARGO_TARGET_DIR=/app/cache RUSTFLAGS=&quot;-C prefer-dynamic&quot; cargo build --release --workspace</code>.</li>
+</ol>
+<p>The total compilation time is:</p>
+<pre tabindex="0"><code>Finished `release` profile [optimized] target(s) in 2.64s
+</code></pre><p>We’ve just compiled the <em>whole project</em> in 2.64s! This is a massive time reduction!</p>
+<h1 id="summary">Summary</h1>
+<p>We started our compile time reduction journey with static linked binaries with a size of 3489kB and a total compilation time of 25.x seconds and we finished it with dynamically linked binaries with a size of 12kB and a total compilation time of 2.x seconds:</p>
+<table>
+<thead>
+<tr>
+<th>Modification</th>
+<th>Total time</th>
+<th>% Time reduction from original</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Original codebase</td>
+<td>25.3s</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>Remove unused dependencies</td>
+<td>23.85s</td>
+<td>5.73%</td>
+</tr>
+<tr>
+<td>Remove unnecesary derives</td>
+<td>21.58s</td>
+<td>14.70%</td>
+</tr>
+<tr>
+<td>Dynamic Linking</td>
+<td>19.74s</td>
+<td>21.98%</td>
+</tr>
+<tr>
+<td>Dynamic Linking + sccache</td>
+<td>6.54s</td>
+<td>75.15%</td>
+</tr>
+<tr>
+<td>Dynamic Linking + cargo chef</td>
+<td>2.64s</td>
+<td>89.57%</td>
+</tr>
+</tbody>
+</table>
+<p>It is important to remember that all the steps include the modifications from the previous steps, with the exception of the caches, that use the dynamic linking branch but sccache and cargo chef are used separately.</p>
+<h1 id="conclusion">Conclusion</h1>
+<p>Sometimes when we are working on projects, deadlines are tight, product team need to release new features and we need to choose wisely on what we spend our time. If we are lucky enough to be in a team that saves time to work on technical debt, we should really use that oportunity to make the structural changes needed in the project to reduce the compilation times. This may sound obvious but not everyone agrees on what is important to solve first.</p>
+<p>When projects are small, compilation times are usually small or tolerable, so we don’t pay much attention. As it grows, compilation times may become a real bottleneck for development (imagine that deploying a new version to a <code>dev</code> environment takes an hour).</p>
+<p>Taking care of the compilation will save the whole team a lot of time and headaches, enabling everyone to develop, test and deploy faster.</p>
+<h1 id="resources">Resources</h1>
+<ul>
+<li><a href="https://zicklag.github.io/rust-tutorials/rust-plugins.html">Learn how to setup dynamically loadable plugins for your Rust app</a></li>
+<li><a href="https://doc.rust-lang.org/reference/linkage.html">Rust’s official Linkage page</a></li>
+<li><a href="https://blog.pnkfx.org/blog/2022/05/12/linking-rust-crates/">Linking Rust crates series</a></li>
+<li><a href="https://nnethercote.github.io/perf-book/build-configuration.html#minimizing-compile-times">Minimizing Compile Times</a></li>
+<li><a href="https://robert.kra.hn/posts/2022-09-09-speeding-up-incremental-rust-compilation-with-dylibs/">Speeding up incremental Rust compilation with dylibs</a></li>
+<li><a href="https://doc.rust-lang.org/cargo/guide/build-cache.html">Build cache</a></li>
+</ul>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>There’s a mode that we can use to avoid recompiling the library to match the Rust version we are currently using:  <code>cdylib</code> . This mode will produce a dynamic linked library that can be used by other programming languages (and of course, also by Rust). The code compiled with this configuration will follow the C ABI (ordering, size, alignment of fields, etc…) enabling the possibility of directly linking the shared library with a C/C++ program or creating the bindings to use it in another language. The problem with this configuration and Rust is that using the shared object is not straightforward thanks to the C ABI. In another article I will explore this way and show how you can use a Rust library in other languages.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Compilations are quite fast because there&rsquo;s not much code. It is enough to show the compilation times improvements.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>You may ask yourself why I used a feature flag and <code>#[cfg_attr(feature = &quot;tests&quot;, ...)]</code> instead of plain <code>#[cfg(test)]</code>. With <code>#[cfg(test)]</code>, only the current crate would be able to see things under that configuration, or in other words, we would not be able to use the things behind that configuration in the unit and integration tests of the binaries.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p>I am not sure why the codegen section (purple) disappeared from the graph and why it took almost the double to compile it. I made the modifications described here in some real world projects and the timings certainly did not doubled for the library crates.&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+]]></content:encoded>
+    </item>
+  </channel>
+</rss>

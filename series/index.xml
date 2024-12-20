@@ -2,10 +2,25 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Series on Nico Antinori</title>
-    <link>https://nicoan.github.io/series/</link>
+    <link>https://nicoan.net/series/</link>
     <description>Recent content in Series on Nico Antinori</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <atom:link href="https://nicoan.github.io/series/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 02 Oct 2024 12:00:00 -0300</lastBuildDate>
+    <atom:link href="https://nicoan.net/series/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Accelerating Rust Compilation Times</title>
+      <link>https://nicoan.net/series/accelerating-rust-compilation-times/</link>
+      <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/series/accelerating-rust-compilation-times/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Rust Ownership, Borrowing and References</title>
+      <link>https://nicoan.net/series/rust-ownership-borrowing-and-references/</link>
+      <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/series/rust-ownership-borrowing-and-references/</guid>
+      <description></description>
+    </item>
   </channel>
 </rss>

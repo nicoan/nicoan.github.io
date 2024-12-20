@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Posts on Nico Antinori</title>
-    <link>https://nicoan.github.io/posts/</link>
+    <link>https://nicoan.net/posts/</link>
     <description>Recent content in Posts on Nico Antinori</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Wed, 02 Oct 2024 12:00:00 -0300</lastBuildDate>
-    <atom:link href="https://nicoan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://nicoan.net/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Accelerating Rust compilation times: Dynamic linking, code generation and cache</title>
-      <link>https://nicoan.github.io/posts/accelerating_compile_times/</link>
+      <link>https://nicoan.net/posts/accelerating_compile_times/</link>
       <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.github.io/posts/accelerating_compile_times/</guid>
+      <guid>https://nicoan.net/posts/accelerating_compile_times/</guid>
       <description>Having a language that does a lot of checks at compile time is not free, it will impact compilation times. Luckily there are some things we can do to speed things up: Dynamic linking, be careful with code generation and caching dependencies.
 Dynamic linking is a somewhat difficult thing to achieve in Rust but not impossible. The main reason is that at the time of writing this (Sept-Oct 2024) Rust does not have its own stable ABI and it must rely on the C binary representation (if we want to inter-operate with other languages or other Rust versions).</description>
       <content:encoded><![CDATA[<p>Having a language that does a lot of checks at compile time is not free, it will impact compilation times. Luckily there are some things we can do to speed things up: Dynamic linking, be careful with code generation and caching dependencies.</p>
@@ -292,9 +292,9 @@ drwxr-xr-x  2 nico nico    5kB Sep 16 14:43 incremental
     </item>
     <item>
       <title>Rust references and borrowing from the inside</title>
-      <link>https://nicoan.github.io/posts/references_and_borrowing/</link>
+      <link>https://nicoan.net/posts/references_and_borrowing/</link>
       <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.github.io/posts/references_and_borrowing/</guid>
+      <guid>https://nicoan.net/posts/references_and_borrowing/</guid>
       <description>Now it is time to talk about references and borrowing. To understand this topic, first check out this post where I talk about ownership and move semantics. As we have seen in the named article, the way Rust manages memory allocations is rather unique. This is also true when we talk about referencing some place in the memory, something that can be achieved in C with pointers.
 GDB In this post I am going to explore what is happening in memory using the GNU Debugger (gdb) with the special command rust-gdb:</description>
       <content:encoded><![CDATA[<p>Now it is time to talk about references and borrowing. To understand this topic, first check out this <a href="/posts/move_semantics/">post</a> where I talk about ownership and move semantics. As we have seen in the named article, the way Rust manages memory allocations is rather unique. This is also true when we talk about referencing some place in the memory, something that can be achieved in C with pointers.</p>
@@ -764,9 +764,9 @@ GDB In this post I am going to explore what is happening in memory using the GNU
     </item>
     <item>
       <title>Rust ownership and move semantics from the inside</title>
-      <link>https://nicoan.github.io/posts/move_semantics/</link>
+      <link>https://nicoan.net/posts/move_semantics/</link>
       <pubDate>Tue, 18 Oct 2022 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.github.io/posts/move_semantics/</guid>
+      <guid>https://nicoan.net/posts/move_semantics/</guid>
       <description>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a post about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&amp;rsquo;t have to worry about in other languages.</description>
       <content:encoded><![CDATA[<p>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a <a href="/posts/stack_and_heap/">post</a> about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&rsquo;t have to worry about in other languages. Enough introduction, let&rsquo;s cut to the chase!</p>
 <h1 id="the-three-rules-of-ownership">The three rules of ownership</h1>
@@ -1106,9 +1106,9 @@ GDB In this post I am going to explore what is happening in memory using the GNU
     </item>
     <item>
       <title>Stack and Heap</title>
-      <link>https://nicoan.github.io/posts/stack_and_heap/</link>
+      <link>https://nicoan.net/posts/stack_and_heap/</link>
       <pubDate>Tue, 26 Jul 2022 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.github.io/posts/stack_and_heap/</guid>
+      <guid>https://nicoan.net/posts/stack_and_heap/</guid>
       <description>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through ownership. Then I thought &amp;ldquo;I should first write about Stack and Heap&amp;rdquo;. So, here we are).
 To understand memory management first, we need to understand what the Stack and the Heap are.</description>
       <content:encoded><![CDATA[<p>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through <a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">ownership</a>. Then I thought &ldquo;I should first write about Stack and Heap&rdquo;. So, here we are).</p>
