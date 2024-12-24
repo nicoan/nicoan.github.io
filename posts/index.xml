@@ -4,7 +4,7 @@
     <title>Posts on Nico Antinori</title>
     <link>https://nicoan.net/posts/</link>
     <description>Recent content in Posts on Nico Antinori</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo -- 0.140.1</generator>
     <language>en</language>
     <lastBuildDate>Wed, 02 Oct 2024 12:00:00 -0300</lastBuildDate>
     <atom:link href="https://nicoan.net/posts/index.xml" rel="self" type="application/rss+xml" />
@@ -13,8 +13,8 @@
       <link>https://nicoan.net/posts/accelerating_compile_times/</link>
       <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/posts/accelerating_compile_times/</guid>
-      <description>Having a language that does a lot of checks at compile time is not free, it will impact compilation times. Luckily there are some things we can do to speed things up: Dynamic linking, be careful with code generation and caching dependencies.
-Dynamic linking is a somewhat difficult thing to achieve in Rust but not impossible. The main reason is that at the time of writing this (Sept-Oct 2024) Rust does not have its own stable ABI and it must rely on the C binary representation (if we want to inter-operate with other languages or other Rust versions).</description>
+      <description>&lt;p&gt;Having a language that does a lot of checks at compile time is not free, it will impact compilation times. Luckily there are some things we can do to speed things up: Dynamic linking, be careful with code generation and caching dependencies.&lt;/p&gt;
+&lt;p&gt;Dynamic linking is a somewhat difficult thing to achieve in Rust but not impossible. The main reason is that at the time of writing this (Sept-Oct 2024) Rust does not have its own &lt;a href=&#34;https://en.wikipedia.org/wiki/Application_binary_interface&#34;&gt;stable ABI&lt;/a&gt; and it must rely on the &lt;a href=&#34;https://doc.rust-lang.org/nomicon/other-reprs.html#reprc&#34;&gt;C binary representation&lt;/a&gt; (if we want to inter-operate with other languages or &lt;em&gt;other Rust versions&lt;/em&gt;). This has some interesting consequences that we will explore in this post.&lt;/p&gt;</description>
       <content:encoded><![CDATA[<p>Having a language that does a lot of checks at compile time is not free, it will impact compilation times. Luckily there are some things we can do to speed things up: Dynamic linking, be careful with code generation and caching dependencies.</p>
 <p>Dynamic linking is a somewhat difficult thing to achieve in Rust but not impossible. The main reason is that at the time of writing this (Sept-Oct 2024) Rust does not have its own <a href="https://en.wikipedia.org/wiki/Application_binary_interface">stable ABI</a> and it must rely on the <a href="https://doc.rust-lang.org/nomicon/other-reprs.html#reprc">C binary representation</a> (if we want to inter-operate with other languages or <em>other Rust versions</em>). This has some interesting consequences that we will explore in this post.</p>
 <p><a href="https://rustc-dev-guide.rust-lang.org/overview.html#code-generation">Code generation</a> is when the high level representation of the source code is turned into binary code that can be executed by the machine. Given that the rust compiler uses <a href="https://llvm.org/">LLVM</a>, the level of optimizations and the quantity of generated code will affect the compilation speed.</p>
@@ -217,45 +217,45 @@ drwxr-xr-x  2 nico nico    5kB Sep 16 14:43 incremental
 <h1 id="summary">Summary</h1>
 <p>We started our compile time reduction journey with static linked binaries with a size of 3489kB and a total compilation time of 25.x seconds and we finished it with dynamically linked binaries with a size of 12kB and a total compilation time of 2.x seconds:</p>
 <table>
-<thead>
-<tr>
-<th>Modification</th>
-<th>Total time</th>
-<th>% Time reduction from original</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Original codebase</td>
-<td>25.3s</td>
-<td>0%</td>
-</tr>
-<tr>
-<td>Remove unused dependencies</td>
-<td>23.85s</td>
-<td>5.73%</td>
-</tr>
-<tr>
-<td>Remove unnecesary derives</td>
-<td>21.58s</td>
-<td>14.70%</td>
-</tr>
-<tr>
-<td>Dynamic Linking</td>
-<td>19.74s</td>
-<td>21.98%</td>
-</tr>
-<tr>
-<td>Dynamic Linking + sccache</td>
-<td>6.54s</td>
-<td>75.15%</td>
-</tr>
-<tr>
-<td>Dynamic Linking + cargo chef</td>
-<td>2.64s</td>
-<td>89.57%</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th>Modification</th>
+          <th>Total time</th>
+          <th>% Time reduction from original</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Original codebase</td>
+          <td>25.3s</td>
+          <td>0%</td>
+      </tr>
+      <tr>
+          <td>Remove unused dependencies</td>
+          <td>23.85s</td>
+          <td>5.73%</td>
+      </tr>
+      <tr>
+          <td>Remove unnecesary derives</td>
+          <td>21.58s</td>
+          <td>14.70%</td>
+      </tr>
+      <tr>
+          <td>Dynamic Linking</td>
+          <td>19.74s</td>
+          <td>21.98%</td>
+      </tr>
+      <tr>
+          <td>Dynamic Linking + sccache</td>
+          <td>6.54s</td>
+          <td>75.15%</td>
+      </tr>
+      <tr>
+          <td>Dynamic Linking + cargo chef</td>
+          <td>2.64s</td>
+          <td>89.57%</td>
+      </tr>
+  </tbody>
 </table>
 <p>It is important to remember that all the steps include the modifications from the previous steps, with the exception of the caches, that use the dynamic linking branch but sccache and cargo chef are used separately.</p>
 <h1 id="conclusion">Conclusion</h1>
@@ -295,12 +295,14 @@ drwxr-xr-x  2 nico nico    5kB Sep 16 14:43 incremental
       <link>https://nicoan.net/posts/references_and_borrowing/</link>
       <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/posts/references_and_borrowing/</guid>
-      <description>Now it is time to talk about references and borrowing. To understand this topic, first check out this post where I talk about ownership and move semantics. As we have seen in the named article, the way Rust manages memory allocations is rather unique. This is also true when we talk about referencing some place in the memory, something that can be achieved in C with pointers.
-GDB In this post I am going to explore what is happening in memory using the GNU Debugger (gdb) with the special command rust-gdb:</description>
-      <content:encoded><![CDATA[<p>Now it is time to talk about references and borrowing. To understand this topic, first check out this <a href="/posts/move_semantics/">post</a> where I talk about ownership and move semantics. As we have seen in the named article, the way Rust manages memory allocations is rather unique. This is also true when we talk about referencing some place in the memory, something that can be achieved in C with pointers.</p>
-<h3 id="gdb">GDB</h3>
+      <description>&lt;p&gt;Now it is time to talk about references and borrowing. To understand this topic, first check out this &lt;a href=&#34;https://nicoan.net/posts/move_semantics&#34;&gt;post&lt;/a&gt; where I talk about ownership and move semantics. As we have seen in the named article, the way Rust manages memory allocations is rather unique. This is also true when we talk about referencing some place in the memory, something that can be achieved in C with pointers.&lt;/p&gt;
+&lt;h1 id=&#34;gdb&#34;&gt;GDB&lt;/h1&gt;
+&lt;p&gt;In this post I am going to explore what is happening in memory using the &lt;a href=&#34;https://en.wikipedia.org/wiki/GNU_Debugger&#34;&gt;GNU Debugger (gdb)&lt;/a&gt; with the special command &lt;code&gt;rust-gdb&lt;/code&gt;:&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>Now it is time to talk about references and borrowing. To understand this topic, first check out this <a href="/posts/move_semantics">post</a> where I talk about ownership and move semantics. As we have seen in the named article, the way Rust manages memory allocations is rather unique. This is also true when we talk about referencing some place in the memory, something that can be achieved in C with pointers.</p>
+<h1 id="gdb">GDB</h1>
 <p>In this post I am going to explore what is happening in memory using the <a href="https://en.wikipedia.org/wiki/GNU_Debugger">GNU Debugger (gdb)</a> with the special command <code>rust-gdb</code>:</p>
-<h1 id="what-is-a-reference-in-rust">What is a reference in Rust?</h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ rust-gdb ./target/debug/references_and_borrowing
+</span></span></code></pre></div><h1 id="what-is-a-reference-in-rust">What is a reference in Rust?</h1>
 <p>A reference is a value that points to data in memory. Although it is similar to a classic pointer there is a crucial difference between the two: a reference is guaranteed to always point to a memory address that contains a valid piece of data whereas pointers are not¹. The checks performed to guarantee that a reference is always valid is done at <strong>compile time</strong>.</p>
 <p>Consider the following code:</p>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
@@ -631,7 +633,7 @@ GDB In this post I am going to explore what is happening in memory using the GNU
 </div><p>This also works! the code compiles and executes without a warning. Is this a good solution? Also no.</p>
 <p>Passing ownership back and forth functions is not a very comfortable and idiomatic way of doing things. On top of that, the function signatures are not semantically accurate. The signature of <code>hello</code> suggests that we pass an <code>String</code> value and returns back another <code>String</code> value. By just looking at it, it is hard to understand what the function intends to do and it does not make sense to return anything if the only objective of the function is only to print something.</p>
 <h3 id="solution-3-borrowing">Solution 3: Borrowing</h3>
-<p>We need to keep the ownership of <code>s</code> in the scope of the <code>main</code> function, we don&rsquo;t want to duplicate values and we don&rsquo;t want to move the values back and forth either. What can we do? use <a href="/posts/references_and_borrowing/#what-is-a-reference-in-rust">a reference</a>!</p>
+<p>We need to keep the ownership of <code>s</code> in the scope of the <code>main</code> function, we don&rsquo;t want to duplicate values and we don&rsquo;t want to move the values back and forth either. What can we do? use <a href="#what-is-a-reference-in-rust">a reference</a>!</p>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
 <table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -750,15 +752,15 @@ GDB In this post I am going to explore what is happening in memory using the GNU
 </div><p>At <code>0x7fffffffd920</code> found a pointer pointing to <code>s</code> in <code>main</code>&rsquo;s stack (<code>0x7fffffffd920: 0x00007fffffffd980</code>)! We can confirm that the whole representation still belongs to <code>main</code>&rsquo;s scope and, in <code>hello</code> and <code>bye</code> functions, we are just referencing it. <code>s</code>memory will be freed once <code>main</code> finishes.</p>
 <p><img loading="lazy" src="/images/references_and_borrowing/s_string.png#center" alt="Borrowing in memory"  />
 </p>
-<p>There&rsquo;s no need to change the scope to borrow a value: the <a href="/posts/references_and_borrowing/#what-is-a-reference-in-rust">code used in the previous section</a>, is just a slight modification of an <a href="/posts/move_semantics/#rule-2-theres-only-one-owner-per-value">example used in a previous post</a> that did not compile. We fixed it by borrowing <code>s1</code>&rsquo;s value to <code>s2</code>.</p>
+<p>There&rsquo;s no need to change the scope to borrow a value: the <a href="#what-is-a-reference-in-rust">code used in the previous section</a>, is just a slight modification of an <a href="/posts/move_semantics/#rule-2-theres-only-one-owner-per-value">example used in a previous post</a> that did not compile. We fixed it by borrowing <code>s1</code>&rsquo;s value to <code>s2</code>.</p>
 <h1 id="conclusion">Conclusion</h1>
 <p>Sometimes we have a hard time fighting the Rust compiler because it usually fails with errors that do not exist in other programming languages. Those errors feel arbitrary but, as we have seen in this post, they are there to protect us. It can take some time to wrap your head around them.</p>
 <p>The more you code in Rust, the less you fight with the compiler and you end up with more performant and more secure programs. Also, a lot of errors are caught at compile time, saving us a lot of precious debugging time.</p>
 <p>This post concludes a series of post about how Rust handles memory the internals of it:</p>
 <ol>
-<li><a href="/posts/stack_and_heap/">Stack and Heap</a></li>
-<li><a href="/posts/move_semantics/">Rust ownership and move semantics from the inside</a></li>
-<li><a href="/posts/references_and_borrowing/">Rust references and borrowing from the inside</a></li>
+<li><a href="/posts/stack_and_heap">Stack and Heap</a></li>
+<li><a href="/posts/move_semantics">Rust ownership and move semantics from the inside</a></li>
+<li><a href="/posts/references_and_borrowing">Rust references and borrowing from the inside</a></li>
 </ol>
 ]]></content:encoded>
     </item>
@@ -767,8 +769,12 @@ GDB In this post I am going to explore what is happening in memory using the GNU
       <link>https://nicoan.net/posts/move_semantics/</link>
       <pubDate>Tue, 18 Oct 2022 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/posts/move_semantics/</guid>
-      <description>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a post about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&amp;rsquo;t have to worry about in other languages.</description>
-      <content:encoded><![CDATA[<p>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a <a href="/posts/stack_and_heap/">post</a> about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&rsquo;t have to worry about in other languages. Enough introduction, let&rsquo;s cut to the chase!</p>
+      <description>&lt;p&gt;Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a &lt;a href=&#34;https://nicoan.net/posts/stack_and_heap&#34;&gt;post&lt;/a&gt; about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&amp;rsquo;t have to worry about in other languages. Enough introduction, let&amp;rsquo;s cut to the chase!&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>Ownership and move semantics is one of the things that makes Rust unique. To understand this topic, you need to understand what Stack and Heap are at a basic level. I wrote a <a href="/posts/stack_and_heap">post</a> about that! You can check it out if you need a refresher on those concepts. It is a little bit hard to get used to this feature because it forces you to think about stuff that you didn&rsquo;t have to worry about in other languages. Enough introduction, let&rsquo;s cut to the chase!</p>
+<h1 id="gdb">GDB</h1>
+<p>In this post, I am going to explore what is happening in memory using the <a href="https://en.wikipedia.org/wiki/GNU_Debugger">GNU Debugger (gdb)</a> with the special command <code>rust-gdb</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ rust-gdb ./target/debug/move_semantics
+</span></span></code></pre></div><p>I am going to use the <a href="https://visualgdb.com/gdbreference/commands/x">x command</a> a lot to explore the stack and the <code>$sp</code> value (refers to the Stack Pointer).</p>
 <h1 id="the-three-rules-of-ownership">The three rules of ownership</h1>
 <p>There are three rules that governs the ownership system:</p>
 <ol>
@@ -787,10 +793,6 @@ GDB In this post I am going to explore what is happening in memory using the GNU
 <li><strong>len</strong>: How much memory, in bytes, the contents of the string is currently using.</li>
 <li><strong>capacity</strong>: The total amount of memory, in bytes, allocated for that string.</li>
 </ul>
-<h3 id="gdb">GDB</h3>
-<p>In this post, I am going to explore what is happening in memory using the <a href="https://en.wikipedia.org/wiki/GNU_Debugger">GNU Debugger (gdb)</a> with the special command <code>rust-gdb</code>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ rust-gdb ./target/debug/move_semantics
-</span></span></code></pre></div><p>I am going to use the <a href="https://visualgdb.com/gdbreference/commands/x">x command</a> a lot to explore the stack and the <code>$sp</code> value (refers to the Stack Pointer).</p>
 <h2 id="rule-1-every-initialized-value-has-an-owner">Rule 1: Every initialized value has an owner.</h2>
 <p>Consider the following code:</p>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
@@ -1109,8 +1111,8 @@ GDB In this post I am going to explore what is happening in memory using the GNU
       <link>https://nicoan.net/posts/stack_and_heap/</link>
       <pubDate>Tue, 26 Jul 2022 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/posts/stack_and_heap/</guid>
-      <description>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through ownership. Then I thought &amp;ldquo;I should first write about Stack and Heap&amp;rdquo;. So, here we are).
-To understand memory management first, we need to understand what the Stack and the Heap are.</description>
+      <description>&lt;p&gt;Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through &lt;a href=&#34;https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html&#34;&gt;ownership&lt;/a&gt;. Then I thought &amp;ldquo;I should first write about Stack and Heap&amp;rdquo;. So, here we are).&lt;/p&gt;
+&lt;p&gt;To understand memory management first, we need to understand what the Stack and the Heap are. Stack and Heap are memory regions used by a process to store and read values. The memory of a running process can usually be divided in the following four regions:&lt;/p&gt;</description>
       <content:encoded><![CDATA[<p>Why write about Stack and Heap when there are already a lot of articles out there? I want to improve my writing skills so, I decided to write articles about things I find interesting. This article was supposed to be about how Rust manages memory through <a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">ownership</a>. Then I thought &ldquo;I should first write about Stack and Heap&rdquo;. So, here we are).</p>
 <p>To understand memory management first, we need to understand what the Stack and the Heap are. Stack and Heap are memory regions used by a process to store and read values. The memory of a running process can usually be divided in the following four regions:</p>
 <p><img loading="lazy" src="/images/stack/memory.png#center" alt="Memory Regions"  />
@@ -1188,30 +1190,30 @@ To understand memory management first, we need to understand what the Stack and 
 </ul>
 <h1 id="summary">Summary</h1>
 <table>
-<thead>
-<tr>
-<th>Stack</th>
-<th>Heap</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Fixed in size</td>
-<td>Can grow or shrink</td>
-</tr>
-<tr>
-<td>Allocations are in a contiguous block</td>
-<td>Allocation happens in &ldquo;random&rdquo; order</td>
-</tr>
-<tr>
-<td>Faster access time</td>
-<td>Slower access time</td>
-</tr>
-<tr>
-<td>Is thread local by default: every thread of a process has its own Stack.</td>
-<td>Can be used to share memory across threads</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th>Stack</th>
+          <th>Heap</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Fixed in size</td>
+          <td>Can grow or shrink</td>
+      </tr>
+      <tr>
+          <td>Allocations are in a contiguous block</td>
+          <td>Allocation happens in &ldquo;random&rdquo; order</td>
+      </tr>
+      <tr>
+          <td>Faster access time</td>
+          <td>Slower access time</td>
+      </tr>
+      <tr>
+          <td>Is thread local by default: every thread of a process has its own Stack.</td>
+          <td>Can be used to share memory across threads</td>
+      </tr>
+  </tbody>
 </table>
 ]]></content:encoded>
     </item>
