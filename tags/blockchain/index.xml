@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Blockchain on Nico Antinori</title>
+    <link>https://nicoan.net/tags/blockchain/</link>
+    <description>Recent content in Blockchain on Nico Antinori</description>
+    <generator>Hugo -- 0.140.1</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 30 May 2024 12:00:00 -0300</lastBuildDate>
+    <atom:link href="https://nicoan.net/tags/blockchain/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Fast data verification in the blockchain: The Merkle Tree</title>
+      <link>https://nicoan.net/posts/merkle_tree/</link>
+      <pubDate>Thu, 30 May 2024 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/posts/merkle_tree/</guid>
+      <description>&lt;p&gt;The bitcoin network has been running non-stop since 2009 and at the time of writing this blog post, the whole blockchain occupies &lt;a href=&#34;https://news.bitcoin.com/bitcoin-blockchain-surpasses-half-terabyte-amid-soaring-transactions-and-increased-block-capacity/&#34;&gt;more than 500GB&lt;/a&gt;. Verifying information in that huge amount of data is not an easy task. Luckily, as many other computer science problems, this can be solved by using the correct data structure. In our case, that data structure is the Merkle tree.&lt;/p&gt;
+&lt;h1 id=&#34;what-is-a-merkle-tree-aka-hash-tree&#34;&gt;What is a Merkle Tree (a.k.a Hash Tree)?&lt;/h1&gt;
+&lt;p&gt;As the name suggests, the Merkle tree is a data structure in form of a tree (usually binary) where:&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>The bitcoin network has been running non-stop since 2009 and at the time of writing this blog post, the whole blockchain occupies <a href="https://news.bitcoin.com/bitcoin-blockchain-surpasses-half-terabyte-amid-soaring-transactions-and-increased-block-capacity/">more than 500GB</a>. Verifying information in that huge amount of data is not an easy task. Luckily, as many other computer science problems, this can be solved by using the correct data structure. In our case, that data structure is the Merkle tree.</p>
+<h1 id="what-is-a-merkle-tree-aka-hash-tree">What is a Merkle Tree (a.k.a Hash Tree)?</h1>
+<p>As the name suggests, the Merkle tree is a data structure in form of a tree (usually binary) where:</p>
+<ul>
+<li>Each leaf contains a <a href="https://en.wikipedia.org/wiki/Cryptographic_hash_function">hashed</a> piece of information we want to save and later on verify.</li>
+<li>Each internal node contains the hash of its two children.</li>
+</ul>
+<p><img loading="lazy" src="/images/merkle_trees/merkle_1.png#center" alt="Merkle 1"  />
+</p>
+<h1 id="what-and-where-are-they-used-for">What and where are they used for?</h1>
+<p>The Merkle Tree usage transcends the blockchain space:</p>
+<ul>
+<li>
+<p><strong>Git version control system</strong>: Git stores everything as a blob (for files) or a tree (for directories, that are also Merkle trees), creating a Merkle tree of the whole project directory. Each blob and tree is part of the outermost tree, meaning that they have assigned a unique hash.</p>
+<p>By representing all the project structure in a Merkle tree, Git is able to quickly evaluate which files were changed by comparing hashes and, with this information, make diffs, pull and push operations more efficient by only performing them on the files that changed.</p>
+</li>
+<li>
+<p><strong>AWS DynamoDB</strong>: A high-performance NoSQL key-value store developed by Amazon, it uses Merkle trees to detect inconsistencies between replicas and minimize the amount of transferred data.</p>
+</li>
+<li>
+<p><strong>BitTorrent protocol:</strong> BitTorrent is a famous peer-to-peer file sharing protocol that uses Merkle Trees for verifying the integrity of the data being downloaded.</p>
+<p>The data is divided into chunks of equal size and then each chunk is hashed. After that a Merkle tree is calculated from the data hashes and the root is included in the torrent file.</p>
+<p>integrity of data pieces can be verified by calculating their hash and constructing the tree all the way up to the root. If the constructed root is different from the original contained in the torrent file, then we can be sure that that piece of data is corrupted and the protocol can efficiently download that chunk again.</p>
+</li>
+</ul>
+<p>In this article we will focus on the Blockchain use cases.</p>
+<h1 id="how-is-it-used-in-blockchain">How is it used in Blockchain?</h1>
+<p>In the <a href="https://bitcoin.org/bitcoin.pdf">Bitcoin whitepaper</a>, Merkle trees are used in several places to solve different problems. Before talking about how Merkle trees are used in Bitcoin, first we need to know how a Bitcoin’s block is composed</p>
+<p>A block contains a list of all the transactions included in that block.Transactions in a Bitcoin’s block are <a href="https://developer.bitcoin.org/reference/block_chain.html#merkle-trees">sorted in an specific order and using their transaction id, a Merkle tree from all the transactions contained in that block is generated</a>. It also contains a header with some useful information about the block itself such as block version, transaction’s Merkle tree root, etc. You can check all the fields <a href="https://developer.bitcoin.org/reference/block_chain.html">here</a>.</p>
+<p>Blocks are uniquely identified through their block hash. The block hash is nothing else than the block header hashed twice with the SHA256 hash function. It is important to remember that the previous block hash is included in the block header and that is what creates the chain.</p>
+<h3 id="data-integrity-and-immutability">Data Integrity and Immutability</h3>
+<p>As we have seen, the transactions’s Merkle tree root and the previous block hash is included in all the chain’s blocks.</p>
+<p><img loading="lazy" src="/images/merkle_trees/merkle_2.png#center" alt="Merkle 2"  />
+</p>
+<p>Imagine now that a malicious actor tries to change the <em>n</em>’th block of the chain by changing a transaction contained in it. Every transaction has a unique transaction hash, so, the malicious transaction will have a different transaction hash than the original:</p>
+<p><img loading="lazy" src="/images/merkle_trees/merkle_3.png#center" alt="Merkle 3"  />
+</p>
+<p>This alteration will cause the intermediate nodes and the root to change, resulting in the block header and block hash changing as well. Since the <em>(n+1)th</em> block uses the previous block hash to calculate its own hash, and the previous hash has changed, new block hashes must be recalculated <strong>for all</strong> subsequent blocks.</p>
+<p>This is a very complicated thing to accomplish for two reasons:</p>
+<ul>
+<li>Computing a single block hash takes around 10 minutes: Block hashes should have a certain number of zeros at the beginning. This is done by searching for a particular value for the <em>nonce</em> field in the header. If the Merkle root changes, there is a very, very low probability that recomputing the same block hash with the same nonce will be a hash that fulfills the condition of having a certain amount of zeros at the beginning, and, if this happened, there is an even lower probability that <strong>all</strong> the next blocks won’t need to change the <em>nonce</em>.</li>
+<li>You’ll need to overpower the network to convince honest nodes that the modified chain is the real one. This is known as <a href="https://bitcoinwiki.org/wiki/51-attack">the 51% attack</a>.</li>
+</ul>
+<p>As a result, blocks in a blockchain are immutable.</p>
+<h3 id="simplified-payment-verification">Simplified Payment Verification</h3>
+<p>By using Merkle Trees, payment verifications can be made in a more efficient way. A verifier can run a node that does not save all the transactions, just the block headers. To verify that a payment was made, it needs to verify that the transaction that backs up that payment is contained in some block of the chain.</p>
+<p>Imagine we need to verify that <em>Tx 6</em> is present in a block. The first thing to do is to retrieve from a <em>full node</em> the block where the transaction is located and some specific nodes (marked in green), known as “Merkle path”<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> from the Merkle tree. After that the verifier can compute the Merkle branch of <em>Tx 6</em> (marked in blue) up to the root and validate that the transaction is included in the block <em>n</em>.</p>
+<p><img loading="lazy" src="/images/merkle_trees/merkle_4.png#center" alt="Merkle 4"  />
+</p>
+<p>The whole verification process is very fast to compute and uses very little data, saves up disk space, and eliminates the need of transferring large amounts of data.</p>
+<p><strong>NOTE</strong>: Ethereum widely uses a variation of the Merkle Tree known as Patricia Merkle Trie. Check <a href="https://ethereum.org/en/developers/docs/data-structures-and-encoding/patricia-merkle-trie/">this</a> for more information.</p>
+<h1 id="conclusion">Conclusion</h1>
+<p>Although the Merkle tree is a simple data structure, its simplicity doesn&rsquo;t make it any less powerful. Using simple yet clever solutions is one of the reasons that makes computer science a beautiful discipline.</p>
+<p>If you ever find yourself in a situation where you need to verify data integrity or identify where data has changed, a Merkle tree is a good and efficient candidate that can help solve that problem.</p>
+<p>Blockchain space is full of these kinds of solutions and many more will come in the future, let’s not forget that we are at the beginning of this journey and new applications for this technology are yet to be discovered. There is space for introducing clever solutions in those yet-to-be-discovered new applications!</p>
+<p>Note: This post was originally written <a href="https://mightyblock.co/blog/merkle-tree/">here</a>.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>The Merkle path is the minimum number of nodes required to calculate the root hash.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Seed Phrase vs Private Key: a technical overview</title>
+      <link>https://nicoan.net/posts/seed_phrase_vs_private_key/</link>
+      <pubDate>Mon, 04 Dec 2023 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/posts/seed_phrase_vs_private_key/</guid>
+      <description>&lt;p&gt;Seed phrase and private key are two terms that are tightly related but are different things. When setting up a new crypto wallet such as Metamask, Ledger or Trezor, among others, a list of 12 or 24 common words is given to the user to back up. That list is the so-called seed phrase, an “easy to remember, easy to backup” word list.&lt;/p&gt;
+&lt;p&gt;A private key is a large binary string used by a crypto wallet for signing the transactions that later will be sent to the chain.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>Seed phrase and private key are two terms that are tightly related but are different things. When setting up a new crypto wallet such as Metamask, Ledger or Trezor, among others, a list of 12 or 24 common words is given to the user to back up. That list is the so-called seed phrase, an “easy to remember, easy to backup” word list.</p>
+<p>A private key is a large binary string used by a crypto wallet for signing the transactions that later will be sent to the chain.</p>
+<p>In this article we are going to take a journey from the generation of the seed phrase to the multiple wallet address generation, making a special stop at the private key creation and paying attention to the technical details of this process.</p>
+<h2 id="how-is-the-seed-phrase-generated-the-bip39-proposal">How is the seed phrase generated? The BIP39 proposal</h2>
+<p>BIP stands for <strong>B</strong>itcoin <strong>I</strong>mprovement <strong>P</strong>roposal. They are documents that describe a proposal for improving the Bitcoin blockchain ecosystem. <a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki">BIP39</a> is called “Mnemonic code for generating deterministic keys” and describes the process of generating the mnemonic code. Here’s how it is
+done:</p>
+<p><img loading="lazy" src="/images/seed_phrase_private_key/sp_pk_1.png#center" alt="Seed Phrase vs Private Key 1"  />
+</p>
+<p>The words are taken from a word list that is available in <a href="https://github.com/bitcoin/bips/tree/master/bip-0039">several languages</a>. The length of the list is always 2048 (2048 = 2¹¹, the number of bits used for grouping ENT + CS).</p>
+<p>The quantity of words produced depends on the amount of entropy bits (ENT – the randomness factor of the initial seed). Typically the lengths used are 128 bits, leading to 12 words, and 256 bits, resulting in 24 words.</p>
+<h2 id="how-is-the-private-key-generated">How is the private key generated?</h2>
+<h3 id="binary-seed">Binary seed</h3>
+<p>Once the mnemonic seed phrase is obtained, numerous private keys can be generated from it. That is why wallets such as Metamask and Trezor are able to generate any number of accounts needed with only one seed phrase.</p>
+<p>To generate the private keys from the seed phrase, the initial step involves computing a binary seed derived from the mnemonic. This computation uses the key stretching algorithm PBKDF2 with HMAC-SHA512, where the seed phrase is concatenated with the string “mnemonic” and a
+password utilized as a salt. In instances where no password is utilized, only the term “mnemonic” is appended.</p>
+<p><img loading="lazy" src="/images/seed_phrase_private_key/sp_pk_2.png#center" alt="Seed Phrase vs Private Key 2"  />
+</p>
+<p>Employing PBKDF2 increases the time and computational power needed for brute-force attacks, rendering it highly impractical to utilize this approach for cracking a seed phrase.</p>
+<p>It is worth mentioning that this process and the seed phrase generation are completely separated processes. This process can be used with a mnemonic seed generated from a totally different process.</p>
+<h3 id="private-keys">Private keys</h3>
+<p>Now it is time to use the binary seed to generate private keys (and from those, public keys and wallet addresses). The following process describes what it is known as a HD Wallet (Hierarchical Deterministic Wallet). First we need to create a Master Private Key, a Master Public
+Key and a Master Chain Code from the Binary seed:</p>
+<p><img loading="lazy" src="/images/seed_phrase_private_key/sp_pk_3.png#center" alt="Seed Phrase vs Private Key 3"  />
+</p>
+<p>From this derivation we will produce all the accounts we need in a deterministic way. To create new accounts, we require:</p>
+<ul>
+<li>Either the Master Private Key or the Master Public Key.</li>
+<li>The Master Chain Code: this will be used as a source of entropy.</li>
+<li>A 32 bit integer number used as index.</li>
+</ul>
+<p><img loading="lazy" src="/images/seed_phrase_private_key/sp_pk_4.png#center" alt="Seed Phrase vs Private Key 4"  />
+</p>
+<p>In the diagram above we used the Master Private Key, but as said earlier we can also use the Master Public Key. The difference between using one or the order is generating a Hardened Key or a Normal Key, but that is out of the scope of this article.</p>
+<p>We can create a virtually limitless quantity of private keys with this method either by changing the index or using a Child Key as a Master Key and repeat the process. This way we can have a tree of
+private keys.</p>
+<h2 id="gluing-it-all-together">Gluing it all together</h2>
+<p>We saw how a seed phrase is generated, used to generate a binary seed that then is used to generate a Master Private Key. This Master Private Key allows us to generate multiple Child Private Keys.</p>
+<p>Public Keys and Wallet addresses are derived from Child Private Keys. It is a chain of derivation:</p>
+<p><img loading="lazy" src="/images/seed_phrase_private_key/sp_pk_5.png#center" alt="Seed Phrase vs Private Key 5"  />
+</p>
+<p>Does this mean that I always need a seed phrase to generate private keys? No! In fact, at the beginning of the blockchain era, all private keys were created individually.</p>
+<h2 id="security">Security</h2>
+<p>Is it worth trying to guess a seed phrase? Imagine that your seed phrase is composed of only one word of the word list. This means that the attacker has to try only 2048 combinations to derive your private key and steal all your assets. Suppose that deriving a private key with a specific combination takes 1 millisecond, then, it would take around 2 seconds to test all the possibilities!</p>
+<p>Imagine now that your seed phrase is composed of two words of the word list. This means that the attacker has to try 2048 x 2048 = 2048² = 4194304 combinations to derive your private key. Assuming the 1-millisecond scenario, it would take the attacker around 1 hour and 10
+minutes to test all the possibilities. That is a lot more!</p>
+<p>Let’s repeat the process but now with 12 words. This means the attacker has to try 2048¹² = 5444517870735015415413993718908291383296 combinations. It would take around 2048¹²÷1000÷60÷60÷24÷365 ≈ 172644529132896227023528466479 years.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>We saw the main difference between seed phrase vs private key, how it helps to keep your assets safe (by saving a phrase instead of a very long easy to forget number).</p>
+<p>Are we at the end of the road? It doesn’t seem to be the case, even though this is a huge improvement on how wallets are created, managed and recovered it is still not enough to enable massive adoption of the crypto ecosystem. There are currently a lot of efforts to make the
+crypto space more user friendly. A proof of that is Ethereum’s ERC-4337, known as “account abstraction” that will, among other things, allow the user to use standard methods of authentication such as fingerprint instead of having to store a mnemonic phrase.</p>
+<p>The crypto space traveled a long distance to be where it is today, but there’s still a lot ahead that needs to be explored, new methods to develop and new things to be discovered. In my opinion, this is just the beginning of this amazing trip. Even though mnemonic phrases are the
+way-to-go today, it is worth paying attention to the new solutions that arise from the community. One or many of those new ideas will help to on-board the next generation of users and allow the mass adoption of this amazing technology.</p>
+<p>Note: This post was originally written <a href="https://mightyblock.co/blog/seed-phrase-vs-private-key-a-technical-overview/">here</a>.</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Zero-Knowledge Proofs Decoded: A Simple Intro</title>
+      <link>https://nicoan.net/posts/zero_knowledge_proofs_decoded/</link>
+      <pubDate>Mon, 15 May 2023 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/posts/zero_knowledge_proofs_decoded/</guid>
+      <description>&lt;p&gt;It’s common to hear about web3 initiatives incorporating or aiming to incorporate ZK-proofs for increased privacy. The notion of Zero Knowledge proof (ZK-proof) is not a modern concept; it was first introduced in a paper named &lt;a href=&#34;http://people.csail.mit.edu/silvio/Selected%20Scientific%20Papers/Proof%20Systems/The_Knowledge_Complexity_Of_Interactive_Proof_Systems.pdf&#34;&gt;“The Knowledge Complexity of Interactive Proof-Systems”&lt;/a&gt; in 1985. In this article we will see what a ZK-proof is, offer an intuitive explanation and explore several use cases.&lt;/p&gt;
+&lt;p&gt;Whether you are a developer or a user, it’s important to understand the core concept behind ZK-Proofs because it will help you understand not only what the product is trying to achieve in matters of security and privacy but also how they are trying to achieve them.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>It’s common to hear about web3 initiatives incorporating or aiming to incorporate ZK-proofs for increased privacy. The notion of Zero Knowledge proof (ZK-proof) is not a modern concept; it was first introduced in a paper named <a href="http://people.csail.mit.edu/silvio/Selected%20Scientific%20Papers/Proof%20Systems/The_Knowledge_Complexity_Of_Interactive_Proof_Systems.pdf">“The Knowledge Complexity of Interactive Proof-Systems”</a> in 1985. In this article we will see what a ZK-proof is, offer an intuitive explanation and explore several use cases.</p>
+<p>Whether you are a developer or a user, it’s important to understand the core concept behind ZK-Proofs because it will help you understand not only what the product is trying to achieve in matters of security and privacy but also how they are trying to achieve them.</p>
+<h2 id="what-is-a-zero-knowledge-proof">What is a Zero-Knowledge Proof?</h2>
+<p>ZK-Proof is protocol that involves a Prover and a Verifier and enables the Prover to demonstrate the truth of a statement to the Verifier without disclosing any additional information beyond the
+veracity of the statement. Essentially, it allows the Prover to prove to the Verifier that they possess knowledge of a specific piece of information, without disclosing it.</p>
+<h2 id="how-does-it-work-an-intuitive-explanation">How does it work? An intuitive explanation</h2>
+<p>The Ali Baba cave is a well-known story used to give an intuitive explanation of how the ZK-Proof protocol works. This story is based in a circular cave with one entrance and a magic door opened by a password located in the middle of it. It involves two actors, Bob the verifier and Alice the Prover.</p>
+<p>Alice wants to prove to Bob that she knows the password that opens the door placed inside the cave without telling him the word itself. To do that they follows three simple steps:</p>
+<p><img loading="lazy" src="/images/zk_intro/zk_1.png#center" alt="Ali Baba cave 1"  />
+</p>
+<ol>
+<li>Alice chooses a random path to enter the cave while Bob waits outside without looking at her.</li>
+<li>Bob goes to the entrance of the cave and screams a path.</li>
+<li>Alice returns to the entrance using the path that Bob screamed in step 2.</li>
+</ol>
+<p>If Bob screams A, and Alice returns using A it can mean two things: either Alice entered the cave through B and knows the password or entered through A and cheated. After all, there is a 50% chance of getting it right.</p>
+<p><img loading="lazy" src="/images/zk_intro/zk_2.png#center" alt="Ali Baba cave 2"  />
+</p>
+<p>The key is to iterate this process until it becomes highly improbable for Alice to have cheated in every repetition, given that each time Alice is correct, the probability of cheating is halved.</p>
+<h2 id="where-can-we-apply-zk-proofs">Where can we apply ZK-Proofs?</h2>
+<p>Any scenario where someone needs to demonstrate the validity of some statement without giving up the information that validates it is suitable. In web3, ZK-Proofs can enhance privacy.  For instance, they can be used to anonymize transactions between peers, as done in the <a href="https://z.cash/technology/">ZCash</a> z-address to z-address transactions, or to enable anonymous voting for decentralized autonomous organizations (<a href="https://en.wikipedia.org/wiki/Decentralized_autonomous_organization">DAOs</a>).</p>
+<p>Given the fact that the ZK-Profs are a general cryptography concept, applications can also be found for web2: financial institutions could leverage ZK-Proofs to demonstrate that a person’s income falls within a specific range, without disclosing the precise income amount or  or as a
+proof of identity, demonstrating that the possession a valid government issued document, without giving it up.</p>
+<p>ZK-Proofs are perfect for this kind of scenario because they can provide strong privacy guarantees without compromising the integrity of the data managed by the system.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Zero-Knowledge proofs have the potential to make the web3 space a more private and safer environment for the users. But as Uncle Ben said in the best Spider-Man movie: “with great power comes great responsibility”. We can’t ignore the fact that these tools can also be
+used by bad actors to perform illicit activities such as money laundering and illegal transactions. As we continue to develop and apply this technology, it is crucial to consider methods for combating its
+misuse without sacrificing its benefits. As web3 enthusiasts and developers this can’t be ignored and should be discussed along with the development of ZK-Proof based solutions.</p>
+<p>Note: This post was originally written <a href="https://mightyblock.co/blog/zero-knowledge-proof/">here</a>.</p>
+]]></content:encoded>
+    </item>
+  </channel>
+</rss>
