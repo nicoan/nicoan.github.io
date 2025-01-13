@@ -320,7 +320,8 @@ drwxr-xr-x  2 nico nico    5kB Sep 16 14:43 incremental
 <li>
 <p><strong>BitTorrent protocol:</strong> BitTorrent is a famous peer-to-peer file sharing protocol that uses Merkle Trees for verifying the integrity of the data being downloaded.</p>
 <p>The data is divided into chunks of equal size and then each chunk is hashed. After that a Merkle tree is calculated from the data hashes and the root is included in the torrent file.</p>
-<p>integrity of data pieces can be verified by calculating their hash and constructing the tree all the way up to the root. If the constructed root is different from the original contained in the torrent file, then we can be sure that that piece of data is corrupted and the protocol can efficiently download that chunk again.</p>
+<p>Integrity of data pieces can be verified by calculating their hash and constructing the merkle path all the way up to the root. If the constructed root is different from the original contained in the torrent file, then we can be sure that that piece of data is corrupted and the protocol can efficiently download that chunk again.</p>
+<p>This is still a <a href="http://www.bittorrent.org/beps/bep_0003.html">draft proposal</a>.</p>
 </li>
 </ul>
 <p>In this article we will focus on the Blockchain use cases.</p>
@@ -353,7 +354,6 @@ drwxr-xr-x  2 nico nico    5kB Sep 16 14:43 incremental
 <p>Although the Merkle tree is a simple data structure, its simplicity doesn&rsquo;t make it any less powerful. Using simple yet clever solutions is one of the reasons that makes computer science a beautiful discipline.</p>
 <p>If you ever find yourself in a situation where you need to verify data integrity or identify where data has changed, a Merkle tree is a good and efficient candidate that can help solve that problem.</p>
 <p>Blockchain space is full of these kinds of solutions and many more will come in the future, let’s not forget that we are at the beginning of this journey and new applications for this technology are yet to be discovered. There is space for introducing clever solutions in those yet-to-be-discovered new applications!</p>
-<p>Note: This post was originally written <a href="https://mightyblock.co/blog/merkle-tree/">here</a>.</p>
 <div class="footnotes" role="doc-endnotes">
 <hr>
 <ol>
@@ -897,7 +897,6 @@ minutes to test all the possibilities. That is a lot more!</p>
 crypto space more user friendly. A proof of that is Ethereum’s ERC-4337, known as “account abstraction” that will, among other things, allow the user to use standard methods of authentication such as fingerprint instead of having to store a mnemonic phrase.</p>
 <p>The crypto space traveled a long distance to be where it is today, but there’s still a lot ahead that needs to be explored, new methods to develop and new things to be discovered. In my opinion, this is just the beginning of this amazing trip. Even though mnemonic phrases are the
 way-to-go today, it is worth paying attention to the new solutions that arise from the community. One or many of those new ideas will help to on-board the next generation of users and allow the mass adoption of this amazing technology.</p>
-<p>Note: This post was originally written <a href="https://mightyblock.co/blog/seed-phrase-vs-private-key-a-technical-overview/">here</a>.</p>
 ]]></content:encoded>
     </item>
     <item>
@@ -935,7 +934,6 @@ proof of identity, demonstrating that the possession a valid government issued d
 <p>Zero-Knowledge proofs have the potential to make the web3 space a more private and safer environment for the users. But as Uncle Ben said in the best Spider-Man movie: “with great power comes great responsibility”. We can’t ignore the fact that these tools can also be
 used by bad actors to perform illicit activities such as money laundering and illegal transactions. As we continue to develop and apply this technology, it is crucial to consider methods for combating its
 misuse without sacrificing its benefits. As web3 enthusiasts and developers this can’t be ignored and should be discussed along with the development of ZK-Proof based solutions.</p>
-<p>Note: This post was originally written <a href="https://mightyblock.co/blog/zero-knowledge-proof/">here</a>.</p>
 ]]></content:encoded>
     </item>
     <item>
