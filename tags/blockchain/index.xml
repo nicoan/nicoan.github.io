@@ -39,7 +39,7 @@
 <p><strong>BitTorrent protocol:</strong> BitTorrent is a famous peer-to-peer file sharing protocol that uses Merkle Trees for verifying the integrity of the data being downloaded.</p>
 <p>The data is divided into chunks of equal size and then each chunk is hashed. After that a Merkle tree is calculated from the data hashes and the root is included in the torrent file.</p>
 <p>Integrity of data pieces can be verified by calculating their hash and constructing the merkle path all the way up to the root. If the constructed root is different from the original contained in the torrent file, then we can be sure that that piece of data is corrupted and the protocol can efficiently download that chunk again.</p>
-<p>This is still a <a href="http://www.bittorrent.org/beps/bep_0003.html">draft proposal</a>.</p>
+<p>This is still a <a href="http://bittorrent.org/beps/bep_0030.html">draft proposal</a>.</p>
 </li>
 </ul>
 <p>In this article we will focus on the Blockchain use cases.</p>
