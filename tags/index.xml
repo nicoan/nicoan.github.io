@@ -6,8 +6,22 @@
     <description>Recent content in Tags on Nico Antinori</description>
     <generator>Hugo -- 0.140.1</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 02 Oct 2024 12:00:00 -0300</lastBuildDate>
+    <lastBuildDate>Thu, 06 Mar 2025 12:00:00 -0300</lastBuildDate>
     <atom:link href="https://nicoan.net/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Cross-Compiling</title>
+      <link>https://nicoan.net/tags/cross-compiling/</link>
+      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/cross-compiling/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Rust</title>
+      <link>https://nicoan.net/tags/rust/</link>
+      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/rust/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Compile-Times</title>
       <link>https://nicoan.net/tags/compile-times/</link>
@@ -20,13 +34,6 @@
       <link>https://nicoan.net/tags/optimization/</link>
       <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/optimization/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Rust</title>
-      <link>https://nicoan.net/tags/rust/</link>
-      <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.net/tags/rust/</guid>
       <description></description>
     </item>
     <item>

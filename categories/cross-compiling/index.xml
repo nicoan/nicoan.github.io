@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Cross-Compiling on Nico Antinori</title>
+    <link>https://nicoan.net/categories/cross-compiling/</link>
+    <description>Recent content in Cross-Compiling on Nico Antinori</description>
+    <generator>Hugo -- 0.140.1</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 06 Mar 2025 12:00:00 -0300</lastBuildDate>
+    <atom:link href="https://nicoan.net/categories/cross-compiling/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Cross compiling Rust using Docker</title>
+      <link>https://nicoan.net/posts/cross_compiling_using_docker/</link>
+      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/posts/cross_compiling_using_docker/</guid>
+      <description>&lt;p&gt;A while ago, I published an app that I originally made for myself but thought it would be useful for others: &lt;a href=&#34;https://kindlyrss.app/&#34;&gt;Kindly RSS Reader&lt;/a&gt;. Kindly RSS Reader is a self-hosted RSS aggregator designed for e-ink devices and optimized for low-end computers such as the Raspberry Pi. In fact, I run it on a Raspberry Pi 3B powered by a USB port.&lt;/p&gt;
+&lt;p&gt;The only way to deploy it at the moment is via Docker (or compiling the source and running it by manually). I’ve uploaded the image in &lt;a href=&#34;https://hub.docker.com/r/nicoan/kindly-rss-reader/&#34;&gt;Docker Hub&lt;/a&gt;. In the future, I plan to create a &lt;code&gt;.deb&lt;/code&gt; package and other formats to make deployment more flexible.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>A while ago, I published an app that I originally made for myself but thought it would be useful for others: <a href="https://kindlyrss.app/">Kindly RSS Reader</a>. Kindly RSS Reader is a self-hosted RSS aggregator designed for e-ink devices and optimized for low-end computers such as the Raspberry Pi. In fact, I run it on a Raspberry Pi 3B powered by a USB port.</p>
+<p>The only way to deploy it at the moment is via Docker (or compiling the source and running it by manually). I’ve uploaded the image in <a href="https://hub.docker.com/r/nicoan/kindly-rss-reader/">Docker Hub</a>. In the future, I plan to create a <code>.deb</code> package and other formats to make deployment more flexible.</p>
+<h1 id="issues-requesting-support-for-other-architectures">Issues requesting support for other architectures</h1>
+<p>I was pleasantly surprised by the attention the project received. After a week of publishing the repository I got received two issues asking to <a href="https://github.com/nicoan/kindly-rss-reader/issues/5">support older arm architectures</a> and for <a href="https://github.com/nicoan/kindly-rss-reader/issues/7">x86_64</a>.</p>
+<p>Supporting more architectures was something I had in mind from the beginning of the project. There are a lot of single-board and low end computers out there that could run the project, so I was happy to see people interested in running it on different architectures.</p>
+<h1 id="the-approach">The approach</h1>
+<p>At the moment I got two computers: A MacBook running an ARMv8 and an old desktop running x86_64. I wanted the build process to be as portable as possible, so I could use either machine, and I usually do not like to install things in the OS unless is absolutely necessary. Using docker for building met both my requirements.</p>
+<h2 id="the-final-images">The final images</h2>
+<p>I wanted the final images to be as lightweight as possible. That’s why I opted for <a href="https://alpinelinux.org/">Alpine Linux</a> <a href="https://hub.docker.com/_/alpine">docker images</a>. Alpine Linux is a small<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> linux distribution focused on security.</p>
+<p>One thing that differentiates Alpine from other distributions is that it uses <a href="https://www.musl-libc.org/">musl C library</a> instad of <a href="https://www.gnu.org/software/libc/">GNU C Library</a>. This is an important detail for cross-compilation.</p>
+<h2 id="the-linkers-image">The linkers image</h2>
+<p>To be able to cross compile projects, we need to use different linkers: one for each target architecture. The target architectures are <code>armv6</code>, <code>armv7</code>, <code>arm64v8</code> (or <code>aarch64</code>) and <code>x86_64</code>.</p>
+<p>The first step was to create a Docker image containing all the necessary linkers. To download and install the them I used the <a href="https://github.com/richfelker/musl-cross-make">musl-cross-make</a> project.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span><span style="color:#75715e"># This image will be used for building the project in different platforms</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> rust:1.84-bullseye AS builder</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /home</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> git clone https://github.com/richfelker/musl-cross-make.git --depth <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e"># armv6</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> cd musl-cross-make <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#39;TARGET = arm-linux-musleabihf&#39;</span> &gt; config.mak <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#39;OUTPUT = /build/cross-armv6&#39;</span> &gt;&gt; config.mak <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> make <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> make install<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e"># armv7</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> cd musl-cross-make <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#39;TARGET = armv7-linux-musleabihf&#39;</span> &gt; config.mak <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#39;OUTPUT = /build/cross-armv7&#39;</span> &gt;&gt; config.mak <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> make <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> make install<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e"># arm64v8</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> cd musl-cross-make <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#39;TARGET = aarch64-linux-musl&#39;</span> &gt; config.mak <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#39;OUTPUT = /build/cross-armv8&#39;</span> &gt;&gt; config.mak <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> make <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> make install<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e"># x86_64</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> cd musl-cross-make <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#39;TARGET = x86_64-linux-musl&#39;</span> &gt; config.mak <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#39;OUTPUT = /build/cross-x86_64&#39;</span> &gt;&gt; config.mak <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> make <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> make install<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENTRYPOINT</span> [<span style="color:#e6db74">&#34;/bin/bash&#34;</span>]<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>As base image, I used <code>rust:1.84-bullseye</code> because it includes all the tools I need for building the project (with the exception of the additional targets, which will be installed manually in the respective Dockerfile).</p>
+<p>The command used for building this image is:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --tag nicoan/kindly-rss-builder <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -f ./dockerfiles/Dockerfile.build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    .
+</span></span></code></pre></div><h2 id="building-the-images">Building the images</h2>
+<p>To build the project, I use four different Dockerfiles: One for each architecture. I could have created one Dockerfile with parameters but I wanted to take advantage of the Docker’s layer caching mechanism. Here’s the Dockerfile for the <code>armv6</code> architecture:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> --platform=$BUILDPLATFORM nicoan/kindly-rss-builder AS builder</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /home</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENV</span> PATH<span style="color:#f92672">=</span>$PATH:/build/cross-armv6/bin<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENV</span> CARGO_TARGET_ARM_UNKNOWN_LINUX_MUSLEABIHF_LINKER<span style="color:#f92672">=</span>arm-linux-musleabihf-gcc<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> rustup target add arm-unknown-linux-musleabihf<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> . ./<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> cargo build --target arm-unknown-linux-musleabihf --release<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> alpine:3 AS run</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> mkdir -p /home/kindlyrss/static_data <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    <span style="color:#f92672">&amp;&amp;</span> mkdir -p /home/kindlyrss/data<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">EXPOSE</span><span style="color:#e6db74"> 3000/tcp</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder /home/target/arm-unknown-linux-musleabihf/release/kindle-rss-reader /usr/local/bin/kindlyrss<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder /home/templates/ /home/kindlyrss/static_data/templates/<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder /home/migrations/ /home/kindlyrss/static_data/migrations/<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder /home/static/ /home/kindlyrss/static_data/static/<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder /home/config/config.json /home/kindlyrss/data/config.json<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENV</span> RUST_LOG<span style="color:#f92672">=</span>info
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">ENV</span> MAX_ARTICLES_QTY_TO_DOWNLOAD<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">ENV</span> STATIC_DATA_PATH<span style="color:#f92672">=</span>/home/kindlyrss/static_data<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENV</span> DATA_PATH<span style="color:#f92672">=</span>/home/kindlyrss/data<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">CMD</span> [<span style="color:#e6db74">&#34;kindlyrss&#34;</span>]<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>The idea is to use a multi-stage build with two stages: <code>build</code> and <code>run</code>.</p>
+<p>In the <code>build</code> stage:</p>
+<ul>
+<li>Line 1: We use <a href="https://www.notion.so/Cross-compiling-Rust-using-Docker-1a7a491da87e80f4a7b9e67ba2ebc738?pvs=21">the linkers image</a> with the <code>--platform=$BUILDPLATFORM</code> parameter to ensure that no emulation will be used in this stage.</li>
+<li>Line 5: We add to the <code>$PATH</code> environment variable the path where the linker’s binaries are located.</li>
+<li>Line 6: We tell cargo which linker we are going to use for compiling <code>armv6</code>. This can be done through <a href="https://doc.rust-lang.org/cargo/reference/config.html#environment-variables">environment variables</a> or <a href="https://doc.rust-lang.org/cargo/reference/config.html#configuration-format">with a configuration file</a>. The shape of the environment variables specifying the linker is <code>CARGO_TARGET_&lt;triple&gt;_LINKER</code>. The format of the <a href="https://doc.rust-lang.org/cargo/commands/cargo-build.html#compilation-options"><code>&lt;triple&gt;</code></a>  is <code>&lt;arch&gt;&lt;sub&gt;-&lt;vendor&gt;-&lt;sys&gt;-&lt;abi&gt;</code>.
+The four environment variables used are:
+<ul>
+<li><code>CARGO_TARGET_ARM_UNKNOWN_LINUX_MUSLEABIHF_LINKER</code> for <code>armv6</code></li>
+<li><code>CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABIHF_LINKER</code> for <code>armv7</code></li>
+<li><code>CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER</code> for <code>arm64v8</code></li>
+<li><code>CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER</code> for <code>x86_64</code></li>
+</ul>
+</li>
+<li>Line 8: We add the <code>arm-unknown-linux-musleabihf</code> target to be able to build the project for the <code>armv6</code> architecture using the musl C library.
+The four targets used are:
+<ul>
+<li><code>arm-unknown-linux-musleabihf</code> for <code>armv6</code></li>
+<li><code>armv7-unknown-linux-musleabihf</code> for <code>armv7</code></li>
+<li><code>aarch64-unknown-linux-musl</code> for <code>arm64v8</code></li>
+<li><code>x86_64-unknown-linux-musl</code> for <code>x86_64</code></li>
+</ul>
+</li>
+<li>Line 9: We copy the source.</li>
+<li>Line 11: We build the project in release mode targeting the <code>armv6</code> architecture.</li>
+</ul>
+<p>The <code>run</code> stage will be built using <code>alpine</code> as base. This stage is the last one and will output the <a href="https://www.notion.so/Cross-compiling-Rust-using-Docker-1a7a491da87e80f4a7b9e67ba2ebc738?pvs=21">final image</a> for <code>armv6</code>. Here, we copy the binary file and all the files needed by it to run the application correctly from the <code>builder</code> stage, expose the port <code>3000</code> and set some configurations using environment variables. After that we execute the binary to run the application.</p>
+<p>Note that in the Dockerfile is never specified the platform to be used. This is done using the <a href="https://docs.docker.com/build/building/multi-platform/#build-multi-platform-images"><code>--platform</code> argument</a> in the <code>docker build</code> command.</p>
+<p>The command used to build this image is:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --tag nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv6 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --platform linux/arm/v6 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -f ./dockerfiles/Dockerfile.armv6 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    .
+</span></span></code></pre></div><p>where <code>$(PACKAGE_VERSION)</code> is the app version.</p>
+<h2 id="publishing-the-images">Publishing the images</h2>
+<p>To publish the images we just need a <a href="https://hub.docker.com/">Docker Hub</a> account and use the <code>docker push</code> command. Since we are supporting more than one architecture, it would be nice to have all the images targeting different platforms grouped in the same tag. This can be achieved by pushing all the different images separately and then creating a manifest pointing at them under the same tag.</p>
+<p>For example, for version <code>0.1.0</code>, we first push the four images:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-armx86_64
+</span></span><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-arm64v8
+</span></span><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-armv7
+</span></span><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-armv6
+</span></span></code></pre></div><p>After that we create a manifest file for the tag <code>0.1.0</code> attaching all the images that we just pushed to the hub:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker manifest create nicoan/kindly-rss-reader:0.1.0 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-armx86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-arm64v8 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-armv7 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-armv6
+</span></span></code></pre></div><p>And push it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker manifest push nicoan/kindly-rss-reader:0.1.0
+</span></span></code></pre></div><p>The same thing can be done with the <code>latest</code> tag with an extra step: we first need to delete its manifest and then re-create it with the images we want to group. If we don’t do the delete step, the new images will be grouped with all the previous ones.</p>
+<h1 id="doing-all-this-process-semi-automatically">Doing all this process semi-automatically</h1>
+<p>I am not good at remembering all the arguments and details of the commands I use. That’s why I usually try to create scripts to automate the processes. In this case I opted to use a good old <code>Makefile</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#75715e"># Extract the version from Cargo.toml
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>PACKAGE_VERSION<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>shell cat Cargo.toml | grep version | head -n <span style="color:#ae81ff">1</span> | awk <span style="color:#e6db74">&#39;{print $$3}&#39;</span> | sed -e <span style="color:#e6db74">&#39;s/&#34;//g&#39;</span><span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Build for different archs
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"># I opted to use multiple Dockerfiles to take advantage of the layer caching mechanism.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">docker-build</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	docker build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--tag nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armx86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		-f ./dockerfiles/Dockerfile.x86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--platform linux/amd64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		.
+</span></span><span style="display:flex;"><span>	docker build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--tag nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-arm64v8 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		-f ./dockerfiles/Dockerfile.armv8 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--platform linux/arm64/v8 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		.
+</span></span><span style="display:flex;"><span>	docker build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--tag nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv6 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--platform linux/arm/v6 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		-f ./dockerfiles/Dockerfile.armv6 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		.
+</span></span><span style="display:flex;"><span>	docker build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--tag nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv7 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--platform linux/arm/v7 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		-f ./dockerfiles/Dockerfile.armv7 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Builds an image with different linkers to be able to build
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"># for different architectures
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">docker-prepare-build-image</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	docker build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--tag nicoan/kindly-rss-builder <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		-f ./dockerfiles/Dockerfile.build <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Push new versions
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">docker-push</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e"># Push different architecture images</span>
+</span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armx86_64
+</span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-arm64v8
+</span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv7
+</span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv6
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e"># Create manifest for the package version and push</span>
+</span></span><span style="display:flex;"><span>	docker manifest create nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armx86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-arm64v8 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv7 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv6
+</span></span><span style="display:flex;"><span>	docker manifest push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e"># Create manifest for the latest tag and push</span>
+</span></span><span style="display:flex;"><span>	docker manifest rm nicoan/kindly-rss-reader:latest
+</span></span><span style="display:flex;"><span>	docker manifest create nicoan/kindly-rss-reader:latest <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armx86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-arm64v8 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv7 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv6
+</span></span><span style="display:flex;"><span>	docker manifest push nicoan/kindly-rss-reader:latest
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">git-tag-and-push</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>	git tag v<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>	git push origin v<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">.PHONY</span><span style="color:#f92672">:</span> build-docker docker-push docker-prepare-build-image git-tag-and-push
+</span></span></code></pre></div><p>This way, I just have to write in the terminal</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>make docker-prepare-build-image
+</span></span><span style="display:flex;"><span>make docker-build
+</span></span><span style="display:flex;"><span>make docker-push
+</span></span></code></pre></div><h1 id="conclusion">Conclusion</h1>
+<p>Using Docker to cross-compile Rust projects ensures portability and ease of deployment. This process could be used in some CI/CD pipeline fully automate the process.</p>
+<h1 id="resources">Resources</h1>
+<ol>
+<li><a href="https://docs.docker.com/build/building/multi-platform/">https://docs.docker.com/build/building/multi-platform/</a></li>
+<li><a href="https://doc.rust-lang.org/cargo/reference/config.html">https://doc.rust-lang.org/cargo/reference/config.html</a></li>
+<li><a href="https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/">https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/</a></li>
+</ol>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Compressed docker images are around 3.5 MBs while Debian stable slim are around 25MBs.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+]]></content:encoded>
+    </item>
+  </channel>
+</rss>

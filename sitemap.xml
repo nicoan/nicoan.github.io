@@ -2,6 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://nicoan.net/posts/cross_compiling_using_docker/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
     <loc>https://nicoan.net/posts/accelerating_compile_times/</loc>
     <lastmod>2024-10-02T12:00:00-03:00</lastmod>
   </url><url>
@@ -23,16 +26,34 @@
     <loc>https://nicoan.net/posts/stack_and_heap/</loc>
     <lastmod>2022-07-26T12:00:00-03:00</lastmod>
   </url><url>
+    <loc>https://nicoan.net/categories/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/tags/cross-compiling/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/categories/cross-compiling/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/posts/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/tags/rust/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/categories/rust/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/tags/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+  </url><url>
     <loc>https://nicoan.net/series/accelerating-rust-compilation-times/</loc>
     <lastmod>2024-10-02T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/categories/</loc>
-    <lastmod>2024-10-02T12:00:00-03:00</lastmod>
-  </url><url>
     <loc>https://nicoan.net/tags/compile-times/</loc>
-    <lastmod>2024-10-02T12:00:00-03:00</lastmod>
-  </url><url>
-    <loc>https://nicoan.net/</loc>
     <lastmod>2024-10-02T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/tags/optimization/</loc>
@@ -41,19 +62,7 @@
     <loc>https://nicoan.net/categories/optimizations/</loc>
     <lastmod>2024-10-02T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/posts/</loc>
-    <lastmod>2024-10-02T12:00:00-03:00</lastmod>
-  </url><url>
-    <loc>https://nicoan.net/tags/rust/</loc>
-    <lastmod>2024-10-02T12:00:00-03:00</lastmod>
-  </url><url>
-    <loc>https://nicoan.net/categories/rust/</loc>
-    <lastmod>2024-10-02T12:00:00-03:00</lastmod>
-  </url><url>
     <loc>https://nicoan.net/series/</loc>
-    <lastmod>2024-10-02T12:00:00-03:00</lastmod>
-  </url><url>
-    <loc>https://nicoan.net/tags/</loc>
     <lastmod>2024-10-02T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/tags/blockchain/</loc>
