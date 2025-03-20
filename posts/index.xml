@@ -141,13 +141,13 @@ The four targets used are:
 <h2 id="publishing-the-images">Publishing the images</h2>
 <p>To publish the images we just need a <a href="https://hub.docker.com/">Docker Hub</a> account and use the <code>docker push</code> command. Since we are supporting more than one architecture, it would be nice to have all the images targeting different platforms grouped in the same tag. This can be achieved by pushing all the different images separately and then creating a manifest pointing at them under the same tag.</p>
 <p>For example, for version <code>0.1.0</code>, we first push the four images:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-armx86_64
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-x86_64
 </span></span><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-arm64v8
 </span></span><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-armv7
 </span></span><span style="display:flex;"><span>docker push nicoan/kindly-rss-reader:0.1.0-armv6
 </span></span></code></pre></div><p>After that we create a manifest file for the tag <code>0.1.0</code> attaching all the images that we just pushed to the hub:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker manifest create nicoan/kindly-rss-reader:0.1.0 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-armx86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-x86_64 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-arm64v8 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-armv7 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --amend nicoan/kindly-rss-reader:0.1.0-armv6
@@ -163,7 +163,7 @@ The four targets used are:
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"># I opted to use multiple Dockerfiles to take advantage of the layer caching mechanism.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">docker-build</span><span style="color:#f92672">:</span>
 </span></span><span style="display:flex;"><span>	docker build <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--tag nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armx86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--tag nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-x86_64 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		-f ./dockerfiles/Dockerfile.x86_64 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--platform linux/amd64 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		.
@@ -194,13 +194,13 @@ The four targets used are:
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Push new versions
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">docker-push</span><span style="color:#f92672">:</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#75715e"># Push different architecture images</span>
-</span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armx86_64
+</span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-x86_64
 </span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-arm64v8
 </span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv7
 </span></span><span style="display:flex;"><span>	docker push nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv6
 </span></span><span style="display:flex;"><span>	<span style="color:#75715e"># Create manifest for the package version and push</span>
 </span></span><span style="display:flex;"><span>	docker manifest create nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armx86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-x86_64 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-arm64v8 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv7 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv6
@@ -208,7 +208,7 @@ The four targets used are:
 </span></span><span style="display:flex;"><span>	<span style="color:#75715e"># Create manifest for the latest tag and push</span>
 </span></span><span style="display:flex;"><span>	docker manifest rm nicoan/kindly-rss-reader:latest
 </span></span><span style="display:flex;"><span>	docker manifest create nicoan/kindly-rss-reader:latest <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armx86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-x86_64 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-arm64v8 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv7 <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>		--amend nicoan/kindly-rss-reader:<span style="color:#66d9ef">$(</span>PACKAGE_VERSION<span style="color:#66d9ef">)</span>-armv6
