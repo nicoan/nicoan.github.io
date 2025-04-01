@@ -4,22 +4,29 @@
     <title>Categories on Nico Antinori</title>
     <link>https://nicoan.net/categories/</link>
     <description>Recent content in Categories on Nico Antinori</description>
-    <generator>Hugo -- 0.140.1</generator>
+    <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 06 Mar 2025 12:00:00 -0300</lastBuildDate>
+    <lastBuildDate>Tue, 01 Apr 2025 12:00:00 -0300</lastBuildDate>
     <atom:link href="https://nicoan.net/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Cross-Compiling</title>
-      <link>https://nicoan.net/categories/cross-compiling/</link>
-      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.net/categories/cross-compiling/</guid>
+      <title>Low Level Programming</title>
+      <link>https://nicoan.net/categories/low-level-programming/</link>
+      <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/categories/low-level-programming/</guid>
       <description></description>
     </item>
     <item>
       <title>Rust</title>
       <link>https://nicoan.net/categories/rust/</link>
-      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
+      <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/rust/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Cross-Compiling</title>
+      <link>https://nicoan.net/categories/cross-compiling/</link>
+      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/categories/cross-compiling/</guid>
       <description></description>
     </item>
     <item>
@@ -48,13 +55,6 @@
       <link>https://nicoan.net/categories/cryptography/</link>
       <pubDate>Thu, 30 May 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/cryptography/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Low Level Programming</title>
-      <link>https://nicoan.net/categories/low-level-programming/</link>
-      <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.net/categories/low-level-programming/</guid>
       <description></description>
     </item>
   </channel>

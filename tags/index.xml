@@ -4,22 +4,43 @@
     <title>Tags on Nico Antinori</title>
     <link>https://nicoan.net/tags/</link>
     <description>Recent content in Tags on Nico Antinori</description>
-    <generator>Hugo -- 0.140.1</generator>
+    <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 06 Mar 2025 12:00:00 -0300</lastBuildDate>
+    <lastBuildDate>Tue, 01 Apr 2025 12:00:00 -0300</lastBuildDate>
     <atom:link href="https://nicoan.net/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Cross-Compiling</title>
-      <link>https://nicoan.net/tags/cross-compiling/</link>
-      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.net/tags/cross-compiling/</guid>
+      <title>Heap</title>
+      <link>https://nicoan.net/tags/heap/</link>
+      <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/heap/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Leak</title>
+      <link>https://nicoan.net/tags/leak/</link>
+      <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/leak/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Low-Level</title>
+      <link>https://nicoan.net/tags/low-level/</link>
+      <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/low-level/</guid>
       <description></description>
     </item>
     <item>
       <title>Rust</title>
       <link>https://nicoan.net/tags/rust/</link>
-      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
+      <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/rust/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Cross-Compiling</title>
+      <link>https://nicoan.net/tags/cross-compiling/</link>
+      <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/cross-compiling/</guid>
       <description></description>
     </item>
     <item>
@@ -48,20 +69,6 @@
       <link>https://nicoan.net/tags/cryptography/</link>
       <pubDate>Thu, 30 May 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/cryptography/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Heap</title>
-      <link>https://nicoan.net/tags/heap/</link>
-      <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.net/tags/heap/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Low-Level</title>
-      <link>https://nicoan.net/tags/low-level/</link>
-      <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.net/tags/low-level/</guid>
       <description></description>
     </item>
     <item>

@@ -4,7 +4,7 @@
     <title>Rust Ownership, Borrowing and References on Nico Antinori</title>
     <link>https://nicoan.net/series/rust-ownership-borrowing-and-references/</link>
     <description>Recent content in Rust Ownership, Borrowing and References on Nico Antinori</description>
-    <generator>Hugo -- 0.140.1</generator>
+    <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
     <lastBuildDate>Sun, 24 Mar 2024 12:00:00 -0300</lastBuildDate>
     <atom:link href="https://nicoan.net/series/rust-ownership-borrowing-and-references/index.xml" rel="self" type="application/rss+xml" />
