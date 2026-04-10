@@ -4,7 +4,7 @@
     <title>Low-Level on Nico Antinori</title>
     <link>https://nicoan.net/tags/low-level/</link>
     <description>Recent content in Low-Level on Nico Antinori</description>
-    <generator>Hugo -- 0.145.0</generator>
+    <generator>Hugo -- 0.140.1</generator>
     <language>en</language>
     <lastBuildDate>Tue, 01 Apr 2025 12:00:00 -0300</lastBuildDate>
     <atom:link href="https://nicoan.net/tags/low-level/index.xml" rel="self" type="application/rss+xml" />
@@ -222,10 +222,12 @@
 The value is 431898688
 </code></pre><p>Here, we leak the value <code>42</code>, and we give it a <code>'static</code> lifetime. <a href="https://doc.rust-lang.org/stable/book/ch10-03-lifetime-syntax.html?highlight=%27static#the-static-lifetime">Citing the Rust Book</a>:</p>
 <blockquote>
-<p>But before specifying <code>'static</code> as the lifetime for a reference, <strong>think about whether the reference you have actually lives the entire lifetime of your program or not</strong>, and whether you want it to</p></blockquote>
+<p>But before specifying <code>'static</code> as the lifetime for a reference, <strong>think about whether the reference you have actually lives the entire lifetime of your program or not</strong>, and whether you want it to</p>
+</blockquote>
 <p>Additionally, by definition, a <a href="https://doc.rust-lang.org/stable/book/ch04-02-references-and-borrowing.html">reference</a> is valid throughout its entire lifetime, unlike a raw pointer.</p>
 <blockquote>
-<p>Unlike a pointer, a reference is guaranteed to point to a valid value of a particular type for the life of that reference.</p></blockquote>
+<p>Unlike a pointer, a reference is guaranteed to point to a valid value of a particular type for the life of that reference.</p>
+</blockquote>
 <p>And <code>Box::leak</code> returns a reference that, as showed in the example above, we can invalidate. The example is very simple and the error can be spotted right away, but in a larger codebase, this could become a bug hard to find and fix.</p>
 <p>In situations where we need a raw pointer and know we are going to reclaim the memory to release it is semantically correct to use the <code>Box::into_raw</code> / <code>Box::from_raw</code> pair of functions.</p>
 <h1 id="conclusion">Conclusion</h1>

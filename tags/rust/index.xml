@@ -4,9 +4,9 @@
     <title>Rust on Nico Antinori</title>
     <link>https://nicoan.net/tags/rust/</link>
     <description>Recent content in Rust on Nico Antinori</description>
-    <generator>Hugo -- 0.145.0</generator>
+    <generator>Hugo -- 0.140.1</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 01 Apr 2025 12:00:00 -0300</lastBuildDate>
+    <lastBuildDate>Wed, 22 Oct 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://nicoan.net/tags/rust/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>When leaking memory makes sense: Leaking memory in Rust</title>
@@ -222,10 +222,12 @@
 The value is 431898688
 </code></pre><p>Here, we leak the value <code>42</code>, and we give it a <code>'static</code> lifetime. <a href="https://doc.rust-lang.org/stable/book/ch10-03-lifetime-syntax.html?highlight=%27static#the-static-lifetime">Citing the Rust Book</a>:</p>
 <blockquote>
-<p>But before specifying <code>'static</code> as the lifetime for a reference, <strong>think about whether the reference you have actually lives the entire lifetime of your program or not</strong>, and whether you want it to</p></blockquote>
+<p>But before specifying <code>'static</code> as the lifetime for a reference, <strong>think about whether the reference you have actually lives the entire lifetime of your program or not</strong>, and whether you want it to</p>
+</blockquote>
 <p>Additionally, by definition, a <a href="https://doc.rust-lang.org/stable/book/ch04-02-references-and-borrowing.html">reference</a> is valid throughout its entire lifetime, unlike a raw pointer.</p>
 <blockquote>
-<p>Unlike a pointer, a reference is guaranteed to point to a valid value of a particular type for the life of that reference.</p></blockquote>
+<p>Unlike a pointer, a reference is guaranteed to point to a valid value of a particular type for the life of that reference.</p>
+</blockquote>
 <p>And <code>Box::leak</code> returns a reference that, as showed in the example above, we can invalidate. The example is very simple and the error can be spotted right away, but in a larger codebase, this could become a bug hard to find and fix.</p>
 <p>In situations where we need a raw pointer and know we are going to reclaim the memory to release it is semantically correct to use the <code>Box::into_raw</code> / <code>Box::from_raw</code> pair of functions.</p>
 <h1 id="conclusion">Conclusion</h1>
@@ -1687,6 +1689,33 @@ drwxr-xr-x  2 nico nico    5kB Sep 16 14:43 incremental
       </tr>
   </tbody>
 </table>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Rust for .NET developers [Spanish]</title>
+      <link>https://nicoan.net/presentations/rust_for_net_devs/</link>
+      <pubDate>Wed, 22 Oct 2025 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/presentations/rust_for_net_devs/</guid>
+      <description>&lt;p&gt;In this session, we will explore how .NET developers can transition into the Rust ecosystem. We&amp;rsquo;ll examine the core differences and similarities between C# and the Microsoft stack. By contrasting familiar .NET patterns with Rust-specific concepts—such as ownership, the borrow checker, and memory safety.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>In this session, we will explore how .NET developers can transition into the Rust ecosystem. We&rsquo;ll examine the core differences and similarities between C# and the Microsoft stack. By contrasting familiar .NET patterns with Rust-specific concepts—such as ownership, the borrow checker, and memory safety.</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Creating an authorizer in AWS with cargo-lambda [Spanish]</title>
+      <link>https://nicoan.net/presentations/aws_lambdas_in_rust/</link>
+      <pubDate>Thu, 03 Apr 2025 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/presentations/aws_lambdas_in_rust/</guid>
+      <description>&lt;p&gt;In this session, we will explore how to leverage cargo-lambda to develop and deploy custom AWS Authorizers. The authorizer is used as an example to show how easy and performant is to use AWS lambdas with Rust.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>In this session, we will explore how to leverage cargo-lambda to develop and deploy custom AWS Authorizers. The authorizer is used as an example to show how easy and performant is to use AWS lambdas with Rust.</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Rust workshop: Build your own ls command [Spanish]</title>
+      <link>https://nicoan.net/presentations/rust_workshop_build_your_own_ls/</link>
+      <pubDate>Fri, 20 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/presentations/rust_workshop_build_your_own_ls/</guid>
+      <description>&lt;p&gt;Presentation of the self-guided workshop by oxidar.org. The workshop is designed to be interactive: to pass each stage, the user must create a pull request against the main branch. Test are automatically run in a GitHub actions pipeline and if all tests are successful, the user is allowed to work on the next stage.&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>Presentation of the self-guided workshop by oxidar.org. The workshop is designed to be interactive: to pass each stage, the user must create a pull request against the main branch. Test are automatically run in a GitHub actions pipeline and if all tests are successful, the user is allowed to work on the next stage.</p>
 ]]></content:encoded>
     </item>
   </channel>

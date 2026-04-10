@@ -29,6 +29,36 @@
     <loc>https://nicoan.net/posts/stack_and_heap/</loc>
     <lastmod>2022-07-26T12:00:00-03:00</lastmod>
   </url><url>
+    <loc>https://nicoan.net/tags/.net/</loc>
+    <lastmod>2025-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/</loc>
+    <lastmod>2025-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/tags/rust/</loc>
+    <lastmod>2025-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/presentations/rust_for_net_devs/</loc>
+    <lastmod>2025-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/tags/</loc>
+    <lastmod>2025-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/presentations/</loc>
+    <lastmod>2025-10-22T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/tags/aws/</loc>
+    <lastmod>2025-04-03T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/tags/cargo-lambda/</loc>
+    <lastmod>2025-04-03T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/presentations/aws_lambdas_in_rust/</loc>
+    <lastmod>2025-04-03T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/tags/lambdas/</loc>
+    <lastmod>2025-04-03T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://nicoan.net/categories/</loc>
     <lastmod>2025-04-01T12:00:00-03:00</lastmod>
   </url><url>
@@ -44,26 +74,20 @@
     <loc>https://nicoan.net/tags/low-level/</loc>
     <lastmod>2025-04-01T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/</loc>
-    <lastmod>2025-04-01T12:00:00-03:00</lastmod>
-  </url><url>
     <loc>https://nicoan.net/posts/</loc>
     <lastmod>2025-04-01T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/categories/rust/</loc>
     <lastmod>2025-04-01T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/tags/rust/</loc>
-    <lastmod>2025-04-01T12:00:00-03:00</lastmod>
-  </url><url>
-    <loc>https://nicoan.net/tags/</loc>
-    <lastmod>2025-04-01T12:00:00-03:00</lastmod>
+    <loc>https://nicoan.net/tags/cross-compiling/</loc>
+    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/categories/cross-compiling/</loc>
     <lastmod>2025-03-06T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/tags/cross-compiling/</loc>
-    <lastmod>2025-03-06T12:00:00-03:00</lastmod>
+    <loc>https://nicoan.net/presentations/rust_workshop_build_your_own_ls/</loc>
+    <lastmod>2024-12-20T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/series/accelerating-rust-compilation-times/</loc>
     <lastmod>2024-10-02T12:00:00-03:00</lastmod>
@@ -80,19 +104,19 @@
     <loc>https://nicoan.net/series/</loc>
     <lastmod>2024-10-02T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/categories/blockchain/</loc>
+    <loc>https://nicoan.net/tags/blockchain/</loc>
     <lastmod>2024-05-30T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/tags/blockchain/</loc>
+    <loc>https://nicoan.net/categories/blockchain/</loc>
     <lastmod>2024-05-30T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/categories/crypto/</loc>
     <lastmod>2024-05-30T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/categories/cryptography/</loc>
+    <loc>https://nicoan.net/tags/cryptography/</loc>
     <lastmod>2024-05-30T12:00:00-03:00</lastmod>
   </url><url>
-    <loc>https://nicoan.net/tags/cryptography/</loc>
+    <loc>https://nicoan.net/categories/cryptography/</loc>
     <lastmod>2024-05-30T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/series/rust-ownership-borrowing-and-references/</loc>
@@ -100,6 +124,8 @@
   </url><url>
     <loc>https://nicoan.net/tags/stack/</loc>
     <lastmod>2024-03-24T12:00:00-03:00</lastmod>
+  </url><url>
+    <loc>https://nicoan.net/about/</loc>
   </url><url>
     <loc>https://nicoan.net/blog/</loc>
   </url>
