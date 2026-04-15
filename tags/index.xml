@@ -1,19 +1,17 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedprojects.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
   <channel>
     <title>Tags on Nico Antinori</title>
     <link>https://nicoan.net/tags/</link>
     <description>Recent content in Tags on Nico Antinori</description>
-    <generator>Hugo -- 0.140.1</generator>
-    <language>en</language>
-    <lastBuildDate>Wed, 22 Oct 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="https://nicoan.net/tags/index.xml" rel="self" type="application/rss+xml" />
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language><atom:link href="https://nicoan.net/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>.NET</title>
       <link>https://nicoan.net/tags/.net/</link>
       <pubDate>Wed, 22 Oct 2025 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/tags/.net/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Rust</title>
@@ -21,6 +19,7 @@
       <pubDate>Wed, 22 Oct 2025 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/tags/rust/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>AWS</title>
@@ -28,6 +27,7 @@
       <pubDate>Thu, 03 Apr 2025 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/tags/aws/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Cargo-Lambda</title>
@@ -35,6 +35,7 @@
       <pubDate>Thu, 03 Apr 2025 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/tags/cargo-lambda/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Lambdas</title>
@@ -42,6 +43,7 @@
       <pubDate>Thu, 03 Apr 2025 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/tags/lambdas/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Heap</title>
@@ -49,6 +51,7 @@
       <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/heap/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Leak</title>
@@ -56,6 +59,7 @@
       <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/leak/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Low-Level</title>
@@ -63,6 +67,7 @@
       <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/low-level/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Cross-Compiling</title>
@@ -70,6 +75,7 @@
       <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/cross-compiling/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Compile-Times</title>
@@ -77,6 +83,7 @@
       <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/compile-times/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Optimization</title>
@@ -84,6 +91,7 @@
       <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/optimization/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Blockchain</title>
@@ -91,6 +99,7 @@
       <pubDate>Thu, 30 May 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/blockchain/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Cryptography</title>
@@ -98,6 +107,7 @@
       <pubDate>Thu, 30 May 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/cryptography/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Stack</title>
@@ -105,6 +115,7 @@
       <pubDate>Sun, 24 Mar 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/stack/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
   </channel>
 </rss>

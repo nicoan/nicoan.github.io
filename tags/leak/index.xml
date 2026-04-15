@@ -1,13 +1,10 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedprojects.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
   <channel>
     <title>Leak on Nico Antinori</title>
     <link>https://nicoan.net/tags/leak/</link>
     <description>Recent content in Leak on Nico Antinori</description>
-    <generator>Hugo -- 0.140.1</generator>
-    <language>en</language>
-    <lastBuildDate>Tue, 01 Apr 2025 12:00:00 -0300</lastBuildDate>
-    <atom:link href="https://nicoan.net/tags/leak/index.xml" rel="self" type="application/rss+xml" />
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language><atom:link href="https://nicoan.net/tags/leak/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>When leaking memory makes sense: Leaking memory in Rust</title>
       <link>https://nicoan.net/posts/when_leaking_memory_makes_sense/</link>
@@ -16,238 +13,238 @@
       <description>&lt;p&gt;It is believed that it is impossible to leak memory with Rust, that is not true. Although is way more difficult to leak memory in Rust than in other languages, it can happen, sometimes by accident, and sometimes, by design. In this article we will explore some cases where leaking memory is useful.&lt;/p&gt;
 &lt;h1 id=&#34;sharing-memory-between-threads&#34;&gt;Sharing memory between threads&lt;/h1&gt;
 &lt;p&gt;Imagine that you have a value that it does not change and needs to be shared across several threads. If the value can be initialized with &lt;a href=&#34;http://doc.rust-lang.org/reference/const_eval.html#const-functions&#34;&gt;constant functions&lt;/a&gt; or values, you can use the &lt;a href=&#34;https://doc.rust-lang.org/std/keyword.static.html&#34;&gt;static&lt;/a&gt; keyword. But what if the value to be shared is not constant? What are the options?&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>It is believed that it is impossible to leak memory with Rust, that is not true. Although is way more difficult to leak memory in Rust than in other languages, it can happen, sometimes by accident, and sometimes, by design. In this article we will explore some cases where leaking memory is useful.</p>
-<h1 id="sharing-memory-between-threads">Sharing memory between threads</h1>
-<p>Imagine that you have a value that it does not change and needs to be shared across several threads. If the value can be initialized with <a href="http://doc.rust-lang.org/reference/const_eval.html#const-functions">constant functions</a> or values, you can use the <a href="https://doc.rust-lang.org/std/keyword.static.html">static</a> keyword. But what if the value to be shared is not constant? What are the options?</p>
-<h2 id="using-arct">Using <code>Arc&lt;T&gt;</code></h2>
-<p><a href="https://doc.rust-lang.org/std/sync/struct.Arc.html"><code>Arc&lt;T&gt;</code></a> is a smart pointer that allow us to share a value safely between threads. ”<code>Arc</code>” stands for “Atomically Reference Counted”. The value owned by the <code>Arc</code> can be read from different threads. Every time an <code>Arc</code> is cloned, the internal counter is incremented by one, and every time an <code>Arc</code> is dropped, the internal counter is decremented by one. Once the counter goes from 1 to 0, the resource owned by the Arc is cleaned up. For example:</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">use</span> std::env;
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">use</span> std::sync::Arc;
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">use</span> std::thread;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> name: String <span style="color:#f92672">=</span> env::args().collect::<span style="color:#f92672">&lt;</span>Vec<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;&gt;</span>().remove(<span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> person_name: <span style="color:#a6e22e">Arc</span><span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> Arc::new(name);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> p <span style="color:#f92672">=</span> person_name.clone();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> t1 <span style="color:#f92672">=</span> thread::spawn(<span style="color:#66d9ef">move</span> <span style="color:#f92672">||</span> {
-</span></span><span style="display:flex;"><span>        println!(<span style="color:#e6db74">&#34;Hello </span><span style="color:#e6db74">{p}</span><span style="color:#e6db74">&#34;</span>);
-</span></span><span style="display:flex;"><span>    });
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> p <span style="color:#f92672">=</span> person_name.clone();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> t2 <span style="color:#f92672">=</span> thread::spawn(<span style="color:#66d9ef">move</span> <span style="color:#f92672">||</span> {
-</span></span><span style="display:flex;"><span>        println!(<span style="color:#e6db74">&#34;Bye </span><span style="color:#e6db74">{p}</span><span style="color:#e6db74">&#34;</span>);
-</span></span><span style="display:flex;"><span>    });
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> _ <span style="color:#f92672">=</span> t1.join();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> _ <span style="color:#f92672">=</span> t2.join();
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>This program receives a name by argument and spawns two threads that read that value. In this example there is no leak: Once the threads finish executing, the <code>Arc</code> is dropped and when the main thread exits, the value is cleaned up, since the <code>Arc</code> owned by the main function is the last reference to the name.</p>
-<h2 id="leaking-memory-with-boxleak">Leaking memory with <code>Box::leak</code></h2>
-<p>Instead of creating an <code>Arc</code> and moving the clones where we need, we can leak the memory with <a href="https://doc.rust-lang.org/std/boxed/struct.Box.html#method.leak"><code>Box::leak</code></a> and share it with the threads:</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="background-color:#3c3d38"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span></span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">use</span> std::env;
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">use</span> std::thread;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> name: String <span style="color:#f92672">=</span> env::args().collect::<span style="color:#f92672">&lt;</span>Vec<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;&gt;</span>().remove(<span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex; background-color:#3c3d38"><span>    <span style="color:#66d9ef">let</span> person_name: <span style="color:#66d9ef">&amp;</span>&#39;static String <span style="color:#f92672">=</span> Box::leak(Box::new(name));
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> t1 <span style="color:#f92672">=</span> thread::spawn(<span style="color:#66d9ef">move</span> <span style="color:#f92672">||</span> {
-</span></span><span style="display:flex;"><span>        println!(<span style="color:#e6db74">&#34;Hello </span><span style="color:#e6db74">{person_name}</span><span style="color:#e6db74">&#34;</span>);
-</span></span><span style="display:flex;"><span>    });
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> t2 <span style="color:#f92672">=</span> thread::spawn(<span style="color:#66d9ef">move</span> <span style="color:#f92672">||</span> {
-</span></span><span style="display:flex;"><span>        println!(<span style="color:#e6db74">&#34;Bye </span><span style="color:#e6db74">{person_name}</span><span style="color:#e6db74">&#34;</span>);
-</span></span><span style="display:flex;"><span>    });
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> _ <span style="color:#f92672">=</span> t1.join();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> _ <span style="color:#f92672">=</span> t2.join();
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>In line 6, we are leaking the memory creating an <em>static reference</em> and then moving it to the spawned threads so they can be read by them <sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>.</p>
-<p>The code showed above is just an example, an actual useful case for leaking memory and reading  it from threads or async tasks is having a global configuration loaded at runtime that we know it won’t change for the entire time the program is beign executed.</p>
-<p>If we check this code with <a href="https://valgrind.org/">valgrind</a></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>valgrind ./target/release/box_leak John
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> Memcheck, a memory error detector
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> Copyright <span style="color:#f92672">(</span>C<span style="color:#f92672">)</span> 2002-2017, and GNU GPL<span style="color:#960050;background-color:#1e0010">&#39;</span>d, by Julian Seward et al.
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> Using Valgrind-3.16.1 and LibVEX; rerun with -h <span style="color:#66d9ef">for</span> copyright info
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> Command: ./target/release/box_leak John
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>
-</span></span><span style="display:flex;"><span>Bye John
-</span></span><span style="display:flex;"><span>Hello John
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> HEAP SUMMARY:
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>     in use at exit: <span style="color:#ae81ff">28</span> bytes in <span style="color:#ae81ff">2</span> blocks
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>   total heap usage: <span style="color:#ae81ff">27</span> allocs, <span style="color:#ae81ff">25</span> frees, 4,229 bytes allocated
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> LEAK SUMMARY:
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>    definitely lost: <span style="color:#ae81ff">24</span> bytes in <span style="color:#ae81ff">1</span> blocks
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>    indirectly lost: <span style="color:#ae81ff">4</span> bytes in <span style="color:#ae81ff">1</span> blocks
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>      possibly lost: <span style="color:#ae81ff">0</span> bytes in <span style="color:#ae81ff">0</span> blocks
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>    still reachable: <span style="color:#ae81ff">0</span> bytes in <span style="color:#ae81ff">0</span> blocks
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>         suppressed: <span style="color:#ae81ff">0</span> bytes in <span style="color:#ae81ff">0</span> blocks
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> Rerun with --leak-check<span style="color:#f92672">=</span>full to see details of leaked memory
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> For lists of detected and suppressed errors, rerun with: -s
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>691<span style="color:#f92672">==</span> ERROR SUMMARY: <span style="color:#ae81ff">0</span> errors from <span style="color:#ae81ff">0</span> contexts <span style="color:#f92672">(</span>suppressed: <span style="color:#ae81ff">0</span> from 0<span style="color:#f92672">)</span>
-</span></span></code></pre></div><p>We effectively see that <strong>not all</strong> memory was freed.</p>
-<h1 id="foreign-function-interfaces-ffi">Foreign Function Interfaces (FFI)</h1>
-<p>Libraries created in Rust can be used in other languages (commonly C) through <a href="https://doc.rust-lang.org/nomicon/ffi.html">Foreign Function Interfaces</a>. In other languages, the way of doing things are usually different than in Rust. For example, in C, exists the “<a href="https://en.wikipedia.org/wiki/Opaque_pointer">Opaque Pointer Pattern</a>”. The objetive of this pattern is to hide implementations details by using an <em>opaque pointer</em>. To implement this pattern, we need a function to create the struct with hidden implementation details, functions to operate on it, and a function to destroy it.</p>
-<p>Suppose you want to reimplement a stack data structure, originally written in C, using Rust. Here’s the header file:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#ifndef STACK_H
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define STACK_H
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdbool.h&gt;</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// This is the opaque type
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> Stack Stack;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Stack <span style="color:#f92672">*</span><span style="color:#a6e22e">stack_create</span>(<span style="color:#66d9ef">int</span> capacity);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stack_destroy</span>(Stack <span style="color:#f92672">*</span>stack);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">stack_push</span>(Stack <span style="color:#f92672">*</span>stack, <span style="color:#66d9ef">int</span> value);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">stack_pop</span>(Stack <span style="color:#f92672">*</span>stack, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>out);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">stack_peek</span>(<span style="color:#66d9ef">const</span> Stack <span style="color:#f92672">*</span>stack, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>out);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">stack_is_empty</span>(<span style="color:#66d9ef">const</span> Stack <span style="color:#f92672">*</span>stack);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
-</span></span></span></code></pre></div><h2 id="data-representation">Data representation</h2>
-<p>To re-implement the stack library, we need to represent the stack in Rust and follow the interface from the header file. For this implementation, we&rsquo;ll use a <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html">Vec<!-- raw HTML omitted --></a> structure:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Stack</span> <span style="color:#f92672">=</span> Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">i32</span><span style="color:#f92672">&gt;</span>;
-</span></span></code></pre></div><h2 id="allocating-memory-and-leaking-it">Allocating memory and leaking it</h2>
-<p>Following the interface defined by the header file, we need to create a function that takes the capacity of the stack and returns a pointer to it. This means that we need to allocate in memory some kind of data that represents a <code>Stack</code> structure (in this case a <code>Vec&lt;i32&gt;</code>) and return a pointer to it. This is implemented as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#75715e">#[unsafe(no_mangle)]</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">extern</span> <span style="color:#e6db74">&#34;C&#34;</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">stack_create</span>(capacity: <span style="color:#66d9ef">usize</span>) -&gt; <span style="color:#f92672">*</span><span style="color:#66d9ef">mut</span> Stack {
-</span></span><span style="display:flex;"><span>    Box::into_raw(Box::new(Vec::with_capacity(capacity)))
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>What we do in this function is create the <code>Vec</code> with the capacity passed by argument, save it inside a <code>Box</code> and use <a href="https://doc.rust-lang.org/std/boxed/struct.Box.html#method.into_raw"><code>Box::into_raw</code></a> to consume the Box and return a raw pointer to the vector. This means that the vector is allocated in memory and is accesible by our program, but now it is our responsibility to be sure that the pointer is allocated with the <code>Stack</code> representation when we want to use it and to release the memory when we do not need it anymore.</p>
-<p>This is analogous to using <a href="https://en.cppreference.com/w/c/memory/malloc">malloc</a> to allocate memory for the data structure and initialize it with values in C.</p>
-<h2 id="reclaiming-the-leaked-memory-to-release-it">Reclaiming the leaked memory to release it</h2>
-<p>If we do not free the <code>Stack</code> allocated by the function <code>stack_create</code>, we will indeed have created a memory leak. The header file declares a function to destroy it, here’s the implementation in Rust:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#75715e">#[unsafe(no_mangle)]</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">unsafe</span> <span style="color:#66d9ef">extern</span> <span style="color:#e6db74">&#34;C&#34;</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">stack_destroy</span>(stack: <span style="color:#f92672">*</span><span style="color:#66d9ef">mut</span> Stack) {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">!</span>stack.is_null() {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> _ <span style="color:#f92672">=</span> <span style="color:#66d9ef">unsafe</span> { Box::from_raw(stack) };
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Here, if the stack pointer is not <code>null</code>, we reconstruct the <code>Box</code> to reclaim the ownership of the allocated memory. The created <code>Box</code> is immediately dropped, releasing the memory.</p>
-<p>If we compile the <a href="https://github.com/nicoan/personal-site/blob/main/codes/rust_leak/stack_rust/src/main.c"><code>main.c</code></a> program and verify it with <a href="https://valgrind.org/">valgrind</a>, we see that there’s no leak</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ valgrind ./main
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span> Memcheck, a memory error detector
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span> Copyright <span style="color:#f92672">(</span>C<span style="color:#f92672">)</span> 2002-2017, and GNU GPL<span style="color:#960050;background-color:#1e0010">&#39;</span>d, by Julian Seward et al.
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span> Using Valgrind-3.16.1 and LibVEX; rerun with -h <span style="color:#66d9ef">for</span> copyright info
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span> Command: ./main
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span>
-</span></span><span style="display:flex;"><span>Top of stack: <span style="color:#ae81ff">20</span>
-</span></span><span style="display:flex;"><span>Popped: <span style="color:#ae81ff">20</span>
-</span></span><span style="display:flex;"><span>Popped: 10
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span> HEAP SUMMARY:
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span>     in use at exit: <span style="color:#ae81ff">0</span> bytes in <span style="color:#ae81ff">0</span> blocks
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span>   total heap usage: <span style="color:#ae81ff">3</span> allocs, <span style="color:#ae81ff">3</span> frees, 1,056 bytes allocated
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span> All heap blocks were freed -- no leaks are possible
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span> For lists of detected and suppressed errors, rerun with: -s
-</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span>580<span style="color:#f92672">==</span> ERROR SUMMARY: <span style="color:#ae81ff">0</span> errors from <span style="color:#ae81ff">0</span> contexts <span style="color:#f92672">(</span>suppressed: <span style="color:#ae81ff">0</span> from 0<span style="color:#f92672">)</span>
-</span></span></code></pre></div><p>We can see that there are no leaks! So, technically we did not leaked memory, it was just a temporal thing from the Rust perspective, and, from C’s perspective, we were simply allocating memory and freeing it correctly afterward.</p>
-<p>You can find the full implementation of both C and Rust <a href="https://github.com/nicoan/personal-site/tree/main/codes/rust_leak">here</a>.</p>
-<h2 id="can-boxleak-be-used-instead-of-boxinto_raw">Can <code>Box::leak</code> be used instead of <code>Box::into_raw</code>?</h2>
-<p>Yes, but in my opinion you should not. Semantically, using <code>Box::from_raw</code> to re-create a <code>Box</code> from a <code>Box::leak</code> is incorrect because, technically, you did not intend to leak memory if you reclaim it with the objetive of releasing it. Check out the following code:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">reconstruct_and_drop</span>(value: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> <span style="color:#66d9ef">i32</span>) {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> _ <span style="color:#f92672">=</span> <span style="color:#66d9ef">unsafe</span> { Box::from_raw(value <span style="color:#66d9ef">as</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">mut</span> <span style="color:#66d9ef">i32</span>) };
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> value <span style="color:#f92672">=</span> Box::new(<span style="color:#ae81ff">42</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> static_value: <span style="color:#66d9ef">&amp;</span>&#39;static <span style="color:#a6e22e">mut</span> <span style="color:#66d9ef">i32</span> <span style="color:#f92672">=</span> Box::leak(value);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;The value is </span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, static_value);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    reconstruct_and_drop(static_value);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;The value is </span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, static_value);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>This results in the following output:</p>
-<pre tabindex="0"><code>The value is 42
+      <content:encoded>&lt;p&gt;It is believed that it is impossible to leak memory with Rust, that is not true. Although is way more difficult to leak memory in Rust than in other languages, it can happen, sometimes by accident, and sometimes, by design. In this article we will explore some cases where leaking memory is useful.&lt;/p&gt;
+&lt;h1 id=&#34;sharing-memory-between-threads&#34;&gt;Sharing memory between threads&lt;/h1&gt;
+&lt;p&gt;Imagine that you have a value that it does not change and needs to be shared across several threads. If the value can be initialized with &lt;a href=&#34;http://doc.rust-lang.org/reference/const_eval.html#const-functions&#34;&gt;constant functions&lt;/a&gt; or values, you can use the &lt;a href=&#34;https://doc.rust-lang.org/std/keyword.static.html&#34;&gt;static&lt;/a&gt; keyword. But what if the value to be shared is not constant? What are the options?&lt;/p&gt;
+&lt;h2 id=&#34;using-arct&#34;&gt;Using &lt;code&gt;Arc&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://doc.rust-lang.org/std/sync/struct.Arc.html&#34;&gt;&lt;code&gt;Arc&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/a&gt; is a smart pointer that allow us to share a value safely between threads. ”&lt;code&gt;Arc&lt;/code&gt;” stands for “Atomically Reference Counted”. The value owned by the &lt;code&gt;Arc&lt;/code&gt; can be read from different threads. Every time an &lt;code&gt;Arc&lt;/code&gt; is cloned, the internal counter is incremented by one, and every time an &lt;code&gt;Arc&lt;/code&gt; is dropped, the internal counter is decremented by one. Once the counter goes from 1 to 0, the resource owned by the Arc is cleaned up. For example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::env;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::sync::Arc;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::thread;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; name: String &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; env::args().collect::&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;String&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&lt;/span&gt;().remove(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; person_name: &lt;span style=&#34;color:#a6e22e&#34;&gt;Arc&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;String&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Arc::new(name);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; person_name.clone();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; t1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; thread::spawn(&lt;span style=&#34;color:#66d9ef&#34;&gt;move&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{p}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    });
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; person_name.clone();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; t2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; thread::spawn(&lt;span style=&#34;color:#66d9ef&#34;&gt;move&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Bye &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{p}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    });
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; t1.join();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; t2.join();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;This program receives a name by argument and spawns two threads that read that value. In this example there is no leak: Once the threads finish executing, the &lt;code&gt;Arc&lt;/code&gt; is dropped and when the main thread exits, the value is cleaned up, since the &lt;code&gt;Arc&lt;/code&gt; owned by the main function is the last reference to the name.&lt;/p&gt;
+&lt;h2 id=&#34;leaking-memory-with-boxleak&#34;&gt;Leaking memory with &lt;code&gt;Box::leak&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;Instead of creating an &lt;code&gt;Arc&lt;/code&gt; and moving the clones where we need, we can leak the memory with &lt;a href=&#34;https://doc.rust-lang.org/std/boxed/struct.Box.html#method.leak&#34;&gt;&lt;code&gt;Box::leak&lt;/code&gt;&lt;/a&gt; and share it with the threads:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;background-color:#3c3d38&#34;&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::env;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::thread;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; name: String &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; env::args().collect::&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;String&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&lt;/span&gt;().remove(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex; background-color:#3c3d38&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; person_name: &lt;span style=&#34;color:#66d9ef&#34;&gt;&amp;amp;&lt;/span&gt;&amp;#39;static String &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Box::leak(Box::new(name));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; t1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; thread::spawn(&lt;span style=&#34;color:#66d9ef&#34;&gt;move&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{person_name}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    });
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; t2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; thread::spawn(&lt;span style=&#34;color:#66d9ef&#34;&gt;move&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Bye &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{person_name}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    });
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; t1.join();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; t2.join();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;In line 6, we are leaking the memory creating an &lt;em&gt;static reference&lt;/em&gt; and then moving it to the spawned threads so they can be read by them &lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;The code showed above is just an example, an actual useful case for leaking memory and reading  it from threads or async tasks is having a global configuration loaded at runtime that we know it won’t change for the entire time the program is beign executed.&lt;/p&gt;
+&lt;p&gt;If we check this code with &lt;a href=&#34;https://valgrind.org/&#34;&gt;valgrind&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;valgrind ./target/release/box_leak John
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Memcheck, a memory error detector
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Copyright &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;C&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; 2002-2017, and GNU GPL&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;d, by Julian Seward et al.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Using Valgrind-3.16.1 and LibVEX; rerun with -h &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; copyright info
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Command: ./target/release/box_leak John
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Bye John
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello John
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; HEAP SUMMARY:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;     in use at exit: &lt;span style=&#34;color:#ae81ff&#34;&gt;28&lt;/span&gt; bytes in &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; blocks
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;   total heap usage: &lt;span style=&#34;color:#ae81ff&#34;&gt;27&lt;/span&gt; allocs, &lt;span style=&#34;color:#ae81ff&#34;&gt;25&lt;/span&gt; frees, 4,229 bytes allocated
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; LEAK SUMMARY:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;    definitely lost: &lt;span style=&#34;color:#ae81ff&#34;&gt;24&lt;/span&gt; bytes in &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; blocks
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;    indirectly lost: &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt; bytes in &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; blocks
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;      possibly lost: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; bytes in &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; blocks
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;    still reachable: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; bytes in &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; blocks
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;         suppressed: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; bytes in &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; blocks
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Rerun with --leak-check&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;full to see details of leaked memory
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; For lists of detected and suppressed errors, rerun with: -s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;691&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; ERROR SUMMARY: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; errors from &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; contexts &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;suppressed: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; from 0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We effectively see that &lt;strong&gt;not all&lt;/strong&gt; memory was freed.&lt;/p&gt;
+&lt;h1 id=&#34;foreign-function-interfaces-ffi&#34;&gt;Foreign Function Interfaces (FFI)&lt;/h1&gt;
+&lt;p&gt;Libraries created in Rust can be used in other languages (commonly C) through &lt;a href=&#34;https://doc.rust-lang.org/nomicon/ffi.html&#34;&gt;Foreign Function Interfaces&lt;/a&gt;. In other languages, the way of doing things are usually different than in Rust. For example, in C, exists the “&lt;a href=&#34;https://en.wikipedia.org/wiki/Opaque_pointer&#34;&gt;Opaque Pointer Pattern&lt;/a&gt;”. The objetive of this pattern is to hide implementations details by using an &lt;em&gt;opaque pointer&lt;/em&gt;. To implement this pattern, we need a function to create the struct with hidden implementation details, functions to operate on it, and a function to destroy it.&lt;/p&gt;
+&lt;p&gt;Suppose you want to reimplement a stack data structure, originally written in C, using Rust. Here’s the header file:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#ifndef STACK_H
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define STACK_H
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdbool.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// This is the opaque type
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; Stack Stack;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Stack &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;stack_create&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; capacity);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;stack_destroy&lt;/span&gt;(Stack &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;stack);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;stack_push&lt;/span&gt;(Stack &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;stack, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; value);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;stack_pop&lt;/span&gt;(Stack &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;stack, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;out);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;stack_peek&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; Stack &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;stack, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;out);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;stack_is_empty&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; Stack &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;stack);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;data-representation&#34;&gt;Data representation&lt;/h2&gt;
+&lt;p&gt;To re-implement the stack library, we need to represent the stack in Rust and follow the interface from the header file. For this implementation, we&amp;rsquo;ll use a &lt;a href=&#34;https://doc.rust-lang.org/std/vec/struct.Vec.html&#34;&gt;Vec&lt;!-- raw HTML omitted --&gt;&lt;/a&gt; structure:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Stack&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;allocating-memory-and-leaking-it&#34;&gt;Allocating memory and leaking it&lt;/h2&gt;
+&lt;p&gt;Following the interface defined by the header file, we need to create a function that takes the capacity of the stack and returns a pointer to it. This means that we need to allocate in memory some kind of data that represents a &lt;code&gt;Stack&lt;/code&gt; structure (in this case a &lt;code&gt;Vec&amp;lt;i32&amp;gt;&lt;/code&gt;) and return a pointer to it. This is implemented as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#[unsafe(no_mangle)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;pub&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;C&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;stack_create&lt;/span&gt;(capacity: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; Stack {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Box::into_raw(Box::new(Vec::with_capacity(capacity)))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What we do in this function is create the &lt;code&gt;Vec&lt;/code&gt; with the capacity passed by argument, save it inside a &lt;code&gt;Box&lt;/code&gt; and use &lt;a href=&#34;https://doc.rust-lang.org/std/boxed/struct.Box.html#method.into_raw&#34;&gt;&lt;code&gt;Box::into_raw&lt;/code&gt;&lt;/a&gt; to consume the Box and return a raw pointer to the vector. This means that the vector is allocated in memory and is accesible by our program, but now it is our responsibility to be sure that the pointer is allocated with the &lt;code&gt;Stack&lt;/code&gt; representation when we want to use it and to release the memory when we do not need it anymore.&lt;/p&gt;
+&lt;p&gt;This is analogous to using &lt;a href=&#34;https://en.cppreference.com/w/c/memory/malloc&#34;&gt;malloc&lt;/a&gt; to allocate memory for the data structure and initialize it with values in C.&lt;/p&gt;
+&lt;h2 id=&#34;reclaiming-the-leaked-memory-to-release-it&#34;&gt;Reclaiming the leaked memory to release it&lt;/h2&gt;
+&lt;p&gt;If we do not free the &lt;code&gt;Stack&lt;/code&gt; allocated by the function &lt;code&gt;stack_create&lt;/code&gt;, we will indeed have created a memory leak. The header file declares a function to destroy it, here’s the implementation in Rust:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#[unsafe(no_mangle)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;pub&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;C&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;stack_destroy&lt;/span&gt;(stack: &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; Stack) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;stack.is_null() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; { Box::from_raw(stack) };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here, if the stack pointer is not &lt;code&gt;null&lt;/code&gt;, we reconstruct the &lt;code&gt;Box&lt;/code&gt; to reclaim the ownership of the allocated memory. The created &lt;code&gt;Box&lt;/code&gt; is immediately dropped, releasing the memory.&lt;/p&gt;
+&lt;p&gt;If we compile the &lt;a href=&#34;https://github.com/nicoan/personal-site/blob/main/codes/rust_leak/stack_rust/src/main.c&#34;&gt;&lt;code&gt;main.c&lt;/code&gt;&lt;/a&gt; program and verify it with &lt;a href=&#34;https://valgrind.org/&#34;&gt;valgrind&lt;/a&gt;, we see that there’s no leak&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ valgrind ./main
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Memcheck, a memory error detector
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Copyright &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;C&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; 2002-2017, and GNU GPL&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;d, by Julian Seward et al.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Using Valgrind-3.16.1 and LibVEX; rerun with -h &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; copyright info
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; Command: ./main
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Top of stack: &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Popped: &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Popped: 10
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; HEAP SUMMARY:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;     in use at exit: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; bytes in &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; blocks
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;   total heap usage: &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; allocs, &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; frees, 1,056 bytes allocated
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; All heap blocks were freed -- no leaks are possible
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; For lists of detected and suppressed errors, rerun with: -s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;580&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; ERROR SUMMARY: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; errors from &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; contexts &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;suppressed: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; from 0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We can see that there are no leaks! So, technically we did not leaked memory, it was just a temporal thing from the Rust perspective, and, from C’s perspective, we were simply allocating memory and freeing it correctly afterward.&lt;/p&gt;
+&lt;p&gt;You can find the full implementation of both C and Rust &lt;a href=&#34;https://github.com/nicoan/personal-site/tree/main/codes/rust_leak&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;can-boxleak-be-used-instead-of-boxinto_raw&#34;&gt;Can &lt;code&gt;Box::leak&lt;/code&gt; be used instead of &lt;code&gt;Box::into_raw&lt;/code&gt;?&lt;/h2&gt;
+&lt;p&gt;Yes, but in my opinion you should not. Semantically, using &lt;code&gt;Box::from_raw&lt;/code&gt; to re-create a &lt;code&gt;Box&lt;/code&gt; from a &lt;code&gt;Box::leak&lt;/code&gt; is incorrect because, technically, you did not intend to leak memory if you reclaim it with the objetive of releasing it. Check out the following code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;reconstruct_and_drop&lt;/span&gt;(value: &lt;span style=&#34;color:#66d9ef&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;mut&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; { Box::from_raw(value &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;) };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; value &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Box::new(&lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; static_value: &lt;span style=&#34;color:#66d9ef&#34;&gt;&amp;amp;&lt;/span&gt;&amp;#39;static &lt;span style=&#34;color:#a6e22e&#34;&gt;mut&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Box::leak(value);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;The value is &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, static_value);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    reconstruct_and_drop(static_value);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;The value is &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, static_value);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This results in the following output:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;The value is 42
 The value is 431898688
-</code></pre><p>Here, we leak the value <code>42</code>, and we give it a <code>'static</code> lifetime. <a href="https://doc.rust-lang.org/stable/book/ch10-03-lifetime-syntax.html?highlight=%27static#the-static-lifetime">Citing the Rust Book</a>:</p>
-<blockquote>
-<p>But before specifying <code>'static</code> as the lifetime for a reference, <strong>think about whether the reference you have actually lives the entire lifetime of your program or not</strong>, and whether you want it to</p>
-</blockquote>
-<p>Additionally, by definition, a <a href="https://doc.rust-lang.org/stable/book/ch04-02-references-and-borrowing.html">reference</a> is valid throughout its entire lifetime, unlike a raw pointer.</p>
-<blockquote>
-<p>Unlike a pointer, a reference is guaranteed to point to a valid value of a particular type for the life of that reference.</p>
-</blockquote>
-<p>And <code>Box::leak</code> returns a reference that, as showed in the example above, we can invalidate. The example is very simple and the error can be spotted right away, but in a larger codebase, this could become a bug hard to find and fix.</p>
-<p>In situations where we need a raw pointer and know we are going to reclaim the memory to release it is semantically correct to use the <code>Box::into_raw</code> / <code>Box::from_raw</code> pair of functions.</p>
-<h1 id="conclusion">Conclusion</h1>
-<p>Even though leaking memory can be an useful resource, it must be used with care. We can’t abuse this mechanism because we can create unintended problems, like running out of memory, or consuming too much of it without an specific purpose.</p>
-<p>But, why re-implement things in Rust and use these tricks? This would require a whole article to explain, but the short answer is that even though you need to use <a href="https://doc.rust-lang.org/std/keyword.unsafe.html"><code>unsafe</code></a> keyword from time to time, if used correctly, you still have a lot of compile-time checks and safety guarantees that Rust provides out of the box.</p>
-<p>Lastly, a real-word scenario where this technique is used is the <a href="https://www.redox-os.org/">Redox OS</a>’s libc re-implementation in Rust called <a href="https://gitlab.redox-os.org/redox-os/relibc">relibc</a> (for example, in the <a href="https://pubs.opengroup.org/onlinepubs/009696599/functions/regcomp.html">regcomp</a> function <a href="https://gitlab.redox-os.org/redox-os/relibc/-/blob/28713e6bf186b9a22f873b6abe9654e97ac0db39/src/header/regex/mod.rs#L62">here’s</a> the <code>Box::into_raw</code>, and in the <a href="https://pubs.opengroup.org/onlinepubs/009696599/functions/regfree.html">regfree</a> function <a href="https://gitlab.redox-os.org/redox-os/relibc/-/blob/28713e6bf186b9a22f873b6abe9654e97ac0db39/src/header/regex/mod.rs#L83">here’s</a> the <code>Box::from_raw</code>)</p>
-<h1 id="references">References</h1>
-<ol>
-<li><a href="https://marabos.nl/atomics/basics.html#shared-ownership-and-reference-counting">https://marabos.nl/atomics/basics.html#shared-ownership-and-reference-counting</a></li>
-</ol>
-<div class="footnotes" role="doc-endnotes">
-<hr>
-<ol>
-<li id="fn:1">
-<p>You may wonder why we need to use the <a href="https://doc.rust-lang.org/std/keyword.move.html">move</a> keyword if we are creating an <code>’static</code> reference. Remember that closures capture their environment by reference, so what we are really capturing here is a <code>&amp;&amp;'static String</code> and not a <code>&amp;'static String</code> where the <em>outer</em> reference is <strong>not</strong> <code>'static</code>.
-When using move, we are “moving” <code>&amp;'static String</code> into the thread, but, since they are references and references are <a href="https://doc.rust-lang.org/std/marker/trait.Copy.html">Copy</a>, we just copy the reference inside of the thread, not destroying it outside.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
-</li>
-</ol>
-</div>
-]]></content:encoded>
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Here, we leak the value &lt;code&gt;42&lt;/code&gt;, and we give it a &lt;code&gt;&#39;static&lt;/code&gt; lifetime. &lt;a href=&#34;https://doc.rust-lang.org/stable/book/ch10-03-lifetime-syntax.html?highlight=%27static#the-static-lifetime&#34;&gt;Citing the Rust Book&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;But before specifying &lt;code&gt;&#39;static&lt;/code&gt; as the lifetime for a reference, &lt;strong&gt;think about whether the reference you have actually lives the entire lifetime of your program or not&lt;/strong&gt;, and whether you want it to&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Additionally, by definition, a &lt;a href=&#34;https://doc.rust-lang.org/stable/book/ch04-02-references-and-borrowing.html&#34;&gt;reference&lt;/a&gt; is valid throughout its entire lifetime, unlike a raw pointer.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Unlike a pointer, a reference is guaranteed to point to a valid value of a particular type for the life of that reference.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;And &lt;code&gt;Box::leak&lt;/code&gt; returns a reference that, as showed in the example above, we can invalidate. The example is very simple and the error can be spotted right away, but in a larger codebase, this could become a bug hard to find and fix.&lt;/p&gt;
+&lt;p&gt;In situations where we need a raw pointer and know we are going to reclaim the memory to release it is semantically correct to use the &lt;code&gt;Box::into_raw&lt;/code&gt; / &lt;code&gt;Box::from_raw&lt;/code&gt; pair of functions.&lt;/p&gt;
+&lt;h1 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h1&gt;
+&lt;p&gt;Even though leaking memory can be an useful resource, it must be used with care. We can’t abuse this mechanism because we can create unintended problems, like running out of memory, or consuming too much of it without an specific purpose.&lt;/p&gt;
+&lt;p&gt;But, why re-implement things in Rust and use these tricks? This would require a whole article to explain, but the short answer is that even though you need to use &lt;a href=&#34;https://doc.rust-lang.org/std/keyword.unsafe.html&#34;&gt;&lt;code&gt;unsafe&lt;/code&gt;&lt;/a&gt; keyword from time to time, if used correctly, you still have a lot of compile-time checks and safety guarantees that Rust provides out of the box.&lt;/p&gt;
+&lt;p&gt;Lastly, a real-word scenario where this technique is used is the &lt;a href=&#34;https://www.redox-os.org/&#34;&gt;Redox OS&lt;/a&gt;’s libc re-implementation in Rust called &lt;a href=&#34;https://gitlab.redox-os.org/redox-os/relibc&#34;&gt;relibc&lt;/a&gt; (for example, in the &lt;a href=&#34;https://pubs.opengroup.org/onlinepubs/009696599/functions/regcomp.html&#34;&gt;regcomp&lt;/a&gt; function &lt;a href=&#34;https://gitlab.redox-os.org/redox-os/relibc/-/blob/28713e6bf186b9a22f873b6abe9654e97ac0db39/src/header/regex/mod.rs#L62&#34;&gt;here’s&lt;/a&gt; the &lt;code&gt;Box::into_raw&lt;/code&gt;, and in the &lt;a href=&#34;https://pubs.opengroup.org/onlinepubs/009696599/functions/regfree.html&#34;&gt;regfree&lt;/a&gt; function &lt;a href=&#34;https://gitlab.redox-os.org/redox-os/relibc/-/blob/28713e6bf186b9a22f873b6abe9654e97ac0db39/src/header/regex/mod.rs#L83&#34;&gt;here’s&lt;/a&gt; the &lt;code&gt;Box::from_raw&lt;/code&gt;)&lt;/p&gt;
+&lt;h1 id=&#34;references&#34;&gt;References&lt;/h1&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://marabos.nl/atomics/basics.html#shared-ownership-and-reference-counting&#34;&gt;https://marabos.nl/atomics/basics.html#shared-ownership-and-reference-counting&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;You may wonder why we need to use the &lt;a href=&#34;https://doc.rust-lang.org/std/keyword.move.html&#34;&gt;move&lt;/a&gt; keyword if we are creating an &lt;code&gt;’static&lt;/code&gt; reference. Remember that closures capture their environment by reference, so what we are really capturing here is a &lt;code&gt;&amp;amp;&amp;amp;&#39;static String&lt;/code&gt; and not a &lt;code&gt;&amp;amp;&#39;static String&lt;/code&gt; where the &lt;em&gt;outer&lt;/em&gt; reference is &lt;strong&gt;not&lt;/strong&gt; &lt;code&gt;&#39;static&lt;/code&gt;.
+When using move, we are “moving” &lt;code&gt;&amp;amp;&#39;static String&lt;/code&gt; into the thread, but, since they are references and references are &lt;a href=&#34;https://doc.rust-lang.org/std/marker/trait.Copy.html&#34;&gt;Copy&lt;/a&gt;, we just copy the reference inside of the thread, not destroying it outside.&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content:encoded>
     </item>
   </channel>
 </rss>

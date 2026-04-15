@@ -1,21 +1,18 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedprojects.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
   <channel>
     <title>Talks / Presentations on Nico Antinori</title>
     <link>https://nicoan.net/presentations/</link>
     <description>Recent content in Talks / Presentations on Nico Antinori</description>
-    <generator>Hugo -- 0.140.1</generator>
-    <language>en</language>
-    <lastBuildDate>Wed, 22 Oct 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="https://nicoan.net/presentations/index.xml" rel="self" type="application/rss+xml" />
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language><atom:link href="https://nicoan.net/presentations/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Rust for .NET developers [Spanish]</title>
       <link>https://nicoan.net/presentations/rust_for_net_devs/</link>
       <pubDate>Wed, 22 Oct 2025 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/presentations/rust_for_net_devs/</guid>
       <description>&lt;p&gt;In this session, we will explore how .NET developers can transition into the Rust ecosystem. We&amp;rsquo;ll examine the core differences and similarities between C# and the Microsoft stack. By contrasting familiar .NET patterns with Rust-specific concepts—such as ownership, the borrow checker, and memory safety.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>In this session, we will explore how .NET developers can transition into the Rust ecosystem. We&rsquo;ll examine the core differences and similarities between C# and the Microsoft stack. By contrasting familiar .NET patterns with Rust-specific concepts—such as ownership, the borrow checker, and memory safety.</p>
-]]></content:encoded>
+      <content:encoded>&lt;p&gt;In this session, we will explore how .NET developers can transition into the Rust ecosystem. We&amp;rsquo;ll examine the core differences and similarities between C# and the Microsoft stack. By contrasting familiar .NET patterns with Rust-specific concepts—such as ownership, the borrow checker, and memory safety.&lt;/p&gt;
+</content:encoded>
     </item>
     <item>
       <title>Creating an authorizer in AWS with cargo-lambda [Spanish]</title>
@@ -23,8 +20,8 @@
       <pubDate>Thu, 03 Apr 2025 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/presentations/aws_lambdas_in_rust/</guid>
       <description>&lt;p&gt;In this session, we will explore how to leverage cargo-lambda to develop and deploy custom AWS Authorizers. The authorizer is used as an example to show how easy and performant is to use AWS lambdas with Rust.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>In this session, we will explore how to leverage cargo-lambda to develop and deploy custom AWS Authorizers. The authorizer is used as an example to show how easy and performant is to use AWS lambdas with Rust.</p>
-]]></content:encoded>
+      <content:encoded>&lt;p&gt;In this session, we will explore how to leverage cargo-lambda to develop and deploy custom AWS Authorizers. The authorizer is used as an example to show how easy and performant is to use AWS lambdas with Rust.&lt;/p&gt;
+</content:encoded>
     </item>
     <item>
       <title>Rust workshop: Build your own ls command [Spanish]</title>
@@ -32,8 +29,8 @@
       <pubDate>Fri, 20 Dec 2024 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/presentations/rust_workshop_build_your_own_ls/</guid>
       <description>&lt;p&gt;Presentation of the self-guided workshop by oxidar.org. The workshop is designed to be interactive: to pass each stage, the user must create a pull request against the main branch. Test are automatically run in a GitHub actions pipeline and if all tests are successful, the user is allowed to work on the next stage.&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>Presentation of the self-guided workshop by oxidar.org. The workshop is designed to be interactive: to pass each stage, the user must create a pull request against the main branch. Test are automatically run in a GitHub actions pipeline and if all tests are successful, the user is allowed to work on the next stage.</p>
-]]></content:encoded>
+      <content:encoded>&lt;p&gt;Presentation of the self-guided workshop by oxidar.org. The workshop is designed to be interactive: to pass each stage, the user must create a pull request against the main branch. Test are automatically run in a GitHub actions pipeline and if all tests are successful, the user is allowed to work on the next stage.&lt;/p&gt;
+</content:encoded>
     </item>
   </channel>
 </rss>

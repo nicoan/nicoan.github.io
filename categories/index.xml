@@ -1,19 +1,17 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedprojects.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
   <channel>
     <title>Categories on Nico Antinori</title>
     <link>https://nicoan.net/categories/</link>
     <description>Recent content in Categories on Nico Antinori</description>
-    <generator>Hugo -- 0.140.1</generator>
-    <language>en</language>
-    <lastBuildDate>Tue, 01 Apr 2025 12:00:00 -0300</lastBuildDate>
-    <atom:link href="https://nicoan.net/categories/index.xml" rel="self" type="application/rss+xml" />
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language><atom:link href="https://nicoan.net/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Low Level Programming</title>
       <link>https://nicoan.net/categories/low-level-programming/</link>
       <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/low-level-programming/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Rust</title>
@@ -21,6 +19,7 @@
       <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/rust/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Cross-Compiling</title>
@@ -28,6 +27,7 @@
       <pubDate>Thu, 06 Mar 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/cross-compiling/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Optimizations</title>
@@ -35,6 +35,7 @@
       <pubDate>Wed, 02 Oct 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/optimizations/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Blockchain</title>
@@ -42,6 +43,7 @@
       <pubDate>Thu, 30 May 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/blockchain/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Crypto</title>
@@ -49,6 +51,7 @@
       <pubDate>Thu, 30 May 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/crypto/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
     <item>
       <title>Cryptography</title>
@@ -56,6 +59,7 @@
       <pubDate>Thu, 30 May 2024 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/categories/cryptography/</guid>
       <description></description>
+      <content:encoded></content:encoded>
     </item>
   </channel>
 </rss>
