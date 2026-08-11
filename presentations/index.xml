@@ -6,6 +6,19 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language><atom:link href="https://nicoan.net/presentations/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>(Why|Who|Where) Rust - DebConf 26 [Spanish]</title>
+      <link>https://nicoan.net/presentations/why_where_who_rust_debconf26/</link>
+      <pubDate>Tue, 21 Jul 2026 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/presentations/why_where_who_rust_debconf26/</guid>
+      <description>&lt;p&gt;For decades, systems programming has meant choosing between safety and performance. As our core infrastructure grows more complex, the cost of memory bugs and concurrency issues keeps climbing. This talk looks at how Rust fits into modern open-source development.&lt;/p&gt;
+&lt;p&gt;We’ll start with why Rust is gaining ground. By looking at common C/C++ pitfalls — iterator invalidation, undefined behavior, lack of thread safety — we’ll show how Rust’s borrow checker and type system catch entire classes of bugs at compile time. We’ll also walk through how Rust could have prevented real-world failures like Heartbleed.&lt;/p&gt;</description>
+      <content:encoded>&lt;p&gt;For decades, systems programming has meant choosing between safety and performance. As our core infrastructure grows more complex, the cost of memory bugs and concurrency issues keeps climbing. This talk looks at how Rust fits into modern open-source development.&lt;/p&gt;
+&lt;p&gt;We’ll start with why Rust is gaining ground. By looking at common C/C++ pitfalls — iterator invalidation, undefined behavior, lack of thread safety — we’ll show how Rust’s borrow checker and type system catch entire classes of bugs at compile time. We’ll also walk through how Rust could have prevented real-world failures like Heartbleed.&lt;/p&gt;
+&lt;p&gt;Then we’ll look at who is actually using it. Rust is already in the Linux kernel, and organizations like Google, Microsoft, Canonical, Discord, and Cloudflare rely on it in production. These aren’t experiments — they show the language is ready for the kind of infrastructure we maintain every day.&lt;/p&gt;
+&lt;p&gt;Finally, we’ll talk about where to get involved. The Rust community is active and welcoming, and we’ll share resources for finding support, contributing to open-source Rust projects, and connecting with other Rustaceans.&lt;/p&gt;
+</content:encoded>
+    </item>
+    <item>
       <title>Rust for .NET developers [Spanish]</title>
       <link>https://nicoan.net/presentations/rust_for_net_devs/</link>
       <pubDate>Wed, 22 Oct 2025 00:00:00 +0000</pubDate>

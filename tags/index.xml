@@ -6,18 +6,42 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language><atom:link href="https://nicoan.net/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>.NET</title>
-      <link>https://nicoan.net/tags/.net/</link>
-      <pubDate>Wed, 22 Oct 2025 00:00:00 +0000</pubDate>
-      <guid>https://nicoan.net/tags/.net/</guid>
+      <title>C</title>
+      <link>https://nicoan.net/tags/c/</link>
+      <pubDate>Tue, 21 Jul 2026 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/tags/c/</guid>
+      <description></description>
+      <content:encoded></content:encoded>
+    </item>
+    <item>
+      <title>C&#43;&#43;</title>
+      <link>https://nicoan.net/tags/c&#43;&#43;/</link>
+      <pubDate>Tue, 21 Jul 2026 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/tags/c&#43;&#43;/</guid>
+      <description></description>
+      <content:encoded></content:encoded>
+    </item>
+    <item>
+      <title>Low Level</title>
+      <link>https://nicoan.net/tags/low-level/</link>
+      <pubDate>Tue, 21 Jul 2026 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/tags/low-level/</guid>
       <description></description>
       <content:encoded></content:encoded>
     </item>
     <item>
       <title>Rust</title>
       <link>https://nicoan.net/tags/rust/</link>
-      <pubDate>Wed, 22 Oct 2025 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 21 Jul 2026 00:00:00 +0000</pubDate>
       <guid>https://nicoan.net/tags/rust/</guid>
+      <description></description>
+      <content:encoded></content:encoded>
+    </item>
+    <item>
+      <title>.NET</title>
+      <link>https://nicoan.net/tags/.net/</link>
+      <pubDate>Wed, 22 Oct 2025 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/tags/.net/</guid>
       <description></description>
       <content:encoded></content:encoded>
     </item>
@@ -58,14 +82,6 @@
       <link>https://nicoan.net/tags/leak/</link>
       <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
       <guid>https://nicoan.net/tags/leak/</guid>
-      <description></description>
-      <content:encoded></content:encoded>
-    </item>
-    <item>
-      <title>Low-Level</title>
-      <link>https://nicoan.net/tags/low-level/</link>
-      <pubDate>Tue, 01 Apr 2025 12:00:00 -0300</pubDate>
-      <guid>https://nicoan.net/tags/low-level/</guid>
       <description></description>
       <content:encoded></content:encoded>
     </item>

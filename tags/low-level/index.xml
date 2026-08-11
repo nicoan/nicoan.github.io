@@ -1,8 +1,8 @@
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedprojects.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
   <channel>
-    <title>Low-Level on Nico Antinori</title>
+    <title>Low Level on Nico Antinori</title>
     <link>https://nicoan.net/tags/low-level/</link>
-    <description>Recent content in Low-Level on Nico Antinori</description>
+    <description>Recent content in Low Level on Nico Antinori</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language><atom:link href="https://nicoan.net/tags/low-level/index.xml" rel="self" type="application/rss+xml" />
     <item>
@@ -1171,6 +1171,19 @@ When using move, we are “moving” &lt;code&gt;&amp;amp;&#39;static String&lt;
       &lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
+</content:encoded>
+    </item>
+    <item>
+      <title>(Why|Who|Where) Rust - DebConf 26 [Spanish]</title>
+      <link>https://nicoan.net/presentations/why_where_who_rust_debconf26/</link>
+      <pubDate>Tue, 21 Jul 2026 00:00:00 +0000</pubDate>
+      <guid>https://nicoan.net/presentations/why_where_who_rust_debconf26/</guid>
+      <description>&lt;p&gt;For decades, systems programming has meant choosing between safety and performance. As our core infrastructure grows more complex, the cost of memory bugs and concurrency issues keeps climbing. This talk looks at how Rust fits into modern open-source development.&lt;/p&gt;
+&lt;p&gt;We’ll start with why Rust is gaining ground. By looking at common C/C++ pitfalls — iterator invalidation, undefined behavior, lack of thread safety — we’ll show how Rust’s borrow checker and type system catch entire classes of bugs at compile time. We’ll also walk through how Rust could have prevented real-world failures like Heartbleed.&lt;/p&gt;</description>
+      <content:encoded>&lt;p&gt;For decades, systems programming has meant choosing between safety and performance. As our core infrastructure grows more complex, the cost of memory bugs and concurrency issues keeps climbing. This talk looks at how Rust fits into modern open-source development.&lt;/p&gt;
+&lt;p&gt;We’ll start with why Rust is gaining ground. By looking at common C/C++ pitfalls — iterator invalidation, undefined behavior, lack of thread safety — we’ll show how Rust’s borrow checker and type system catch entire classes of bugs at compile time. We’ll also walk through how Rust could have prevented real-world failures like Heartbleed.&lt;/p&gt;
+&lt;p&gt;Then we’ll look at who is actually using it. Rust is already in the Linux kernel, and organizations like Google, Microsoft, Canonical, Discord, and Cloudflare rely on it in production. These aren’t experiments — they show the language is ready for the kind of infrastructure we maintain every day.&lt;/p&gt;
+&lt;p&gt;Finally, we’ll talk about where to get involved. The Rust community is active and welcoming, and we’ll share resources for finding support, contributing to open-source Rust projects, and connecting with other Rustaceans.&lt;/p&gt;
 </content:encoded>
     </item>
   </channel>
