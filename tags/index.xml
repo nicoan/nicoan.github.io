@@ -6,6 +6,38 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language><atom:link href="https://nicoan.net/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Debian</title>
+      <link>https://nicoan.net/tags/debian/</link>
+      <pubDate>Tue, 11 Aug 2026 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/debian/</guid>
+      <description></description>
+      <content:encoded></content:encoded>
+    </item>
+    <item>
+      <title>Events</title>
+      <link>https://nicoan.net/tags/events/</link>
+      <pubDate>Tue, 11 Aug 2026 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/events/</guid>
+      <description></description>
+      <content:encoded></content:encoded>
+    </item>
+    <item>
+      <title>Linux</title>
+      <link>https://nicoan.net/tags/linux/</link>
+      <pubDate>Tue, 11 Aug 2026 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/linux/</guid>
+      <description></description>
+      <content:encoded></content:encoded>
+    </item>
+    <item>
+      <title>Talks</title>
+      <link>https://nicoan.net/tags/talks/</link>
+      <pubDate>Tue, 11 Aug 2026 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/tags/talks/</guid>
+      <description></description>
+      <content:encoded></content:encoded>
+    </item>
+    <item>
       <title>C</title>
       <link>https://nicoan.net/tags/c/</link>
       <pubDate>Tue, 21 Jul 2026 00:00:00 +0000</pubDate>
