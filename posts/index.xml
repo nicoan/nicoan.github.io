@@ -6,6 +6,149 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language><atom:link href="https://nicoan.net/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Setting up a Linux Kernel dev environment with Raspberry Pi, U-Boot, TFTP and NFS</title>
+      <link>https://nicoan.net/posts/kernel_dev_rpy_uboot_tftp_nfs/</link>
+      <pubDate>Wed, 19 Aug 2026 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/posts/kernel_dev_rpy_uboot_tftp_nfs/</guid>
+      <description>&lt;p&gt;I am writing this guide basically to use it from time to time if I need it. For this to work you need:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Raspberry Pi (in this guide we use 3b+, but I believe anyone should do the trick).&lt;/li&gt;
+&lt;li&gt;Micro SD card.&lt;/li&gt;
+&lt;li&gt;SD card reader in the host machine.&lt;/li&gt;
+&lt;li&gt;USB keyboard (can be a wireless one with a dongle, but it should not be Bluetooth).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The host machine of this guide runs Debian 13. It is assumed that you know how to compile a custom kernel. I won&amp;rsquo;t enter in much detail about the commands used here, because, as I said earlier, I am basically writing this guide for my future self.&lt;/p&gt;</description>
+      <content:encoded>&lt;p&gt;I am writing this guide basically to use it from time to time if I need it. For this to work you need:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Raspberry Pi (in this guide we use 3b+, but I believe anyone should do the trick).&lt;/li&gt;
+&lt;li&gt;Micro SD card.&lt;/li&gt;
+&lt;li&gt;SD card reader in the host machine.&lt;/li&gt;
+&lt;li&gt;USB keyboard (can be a wireless one with a dongle, but it should not be Bluetooth).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The host machine of this guide runs Debian 13. It is assumed that you know how to compile a custom kernel. I won&amp;rsquo;t enter in much detail about the commands used here, because, as I said earlier, I am basically writing this guide for my future self.&lt;/p&gt;
+&lt;h1 id=&#34;install-raspberry-pi-os&#34;&gt;Install Raspberry Pi Os&lt;/h1&gt;
+&lt;p&gt;The first thing you need to do is to install Raspberry OS in the SD card. For this I recommend using the &lt;a href=&#34;https://www.raspberrypi.com/software/&#34;&gt;Raspberry Pi Imager&lt;/a&gt;, since it is the easiest way to install the OS and you can choose whatever option suits you better (in my case I use the minimal install).&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;https://nicoan.net/images/uboot_raspberrypi/rpy_imager.webp#center&#34; alt=&#34;Raspberry Pi Imager&#34;  /&gt;
+&lt;/p&gt;
+&lt;h2 id=&#34;copying-rootfs-to-host&#34;&gt;Copying rootfs to host&lt;/h2&gt;
+&lt;p&gt;Once you have the system installed in your SD card, you&amp;rsquo;ll need to copy the rootfs partition to a folder in your host system. This folder will be the rootfs partition when booting through NFS.&lt;/p&gt;
+&lt;p&gt;First check the card’s partitions:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ lsblk
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sdc           8:32   &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;  14.8G  &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; disk
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;├─sdc1        8:33   &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;   512M  &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; part
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;└─sdc2        8:34   &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;  14.3G  &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; part
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In my case, the rootfs is sdc2, I proceed to mount it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ mkdir /tmp/rpi_rootfs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo mount /dev/sdc2 /tmp/rpi_rootfs
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And then, synchronize it to a folder in the host system&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo rsync -axHAWX --numeric-ids /tmp/rpi_rootfs &amp;lt;HOST_ROOTFS&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;where &lt;code&gt;&amp;lt;HOST_ROOTFS&amp;gt;&lt;/code&gt; is the directory where you will place the rootfs in your host machine.&lt;/p&gt;
+&lt;h1 id=&#34;compile-and-install-u-boot&#34;&gt;Compile and install U-Boot&lt;/h1&gt;
+&lt;p&gt;U-Boot will allow us to boot a kernel image served via TFTP and mount a root file system served via NFS. First, you need to clone the repository:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ git clone https://github.com/u-boot/u-boot.git
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Before compiling it, you need to create a configuration specifically for the board you are going to use for development. In my case it is a Raspberry Pi 3b+, so I needed to execute the following command to generate the configuration:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cd u-boot
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ make rpi_3_b_plus_defconfig
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;Note: Check the &lt;code&gt;configs&lt;/code&gt; folder to see the available board configs.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Once the configuration is in place, compile the binary:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ make ARCH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;arm CROSS_COMPILE&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;aarch64-linux-gnu-&amp;#34;&lt;/span&gt; -j&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;nproc&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This will leave the U-Boot binaries in the repository’s root directory. The needed file is called &lt;code&gt;u-boot.bin&lt;/code&gt;. You&amp;rsquo;ll have to copy it to the boot partition of the SD card:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ mkdir /tmp/rpi_bootfs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo mount /dev/sdc1 /tmp/rpi_bootfs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cp u-boot.bin /tmp/rpi_bootfs
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Later, modify the &lt;code&gt;config.txt&lt;/code&gt;, also located in the boot partition. Add the following at the end of the named file:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[all]
+enable_uart=1
+kernel=u-boot.bin
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;With this modification, instead of booting the system, the Raspberry will boot into U-Boot.&lt;/p&gt;
+&lt;p&gt;After this step, the SD card is not needed anymore. Unmount the partitions with:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo umount /dev/sdc1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo umount /dev/sdc2
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And put it in the Raspberry Pi.&lt;/p&gt;
+&lt;h1 id=&#34;configuring-tftp&#34;&gt;Configuring TFTP&lt;/h1&gt;
+&lt;p&gt;TFTP is used to load kernel images over Ethernet. This is very useful when working with the latest kernels, since it allows you to compile new versions and boot them really quickly. First, you need to install &lt;code&gt;dnsmasq&lt;/code&gt; package:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo apt-get install dnsmasq
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then, create the directory where the kernel image will be served:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo mkdir -p /var/tftpd
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Configure &lt;code&gt;dnsmasq&lt;/code&gt; by adding the following to &lt;code&gt;/etc/dnsmasq.conf&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;listen-address=&amp;lt;HOST_MACHINE_IP_ADDRESS&amp;gt;
+dhcp-range=192.168.1.50,192.168.1.200,24h
+enable-tftp
+tftp-root=/var/tftpd
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;Note: 192.168.1.0/24 is the subnet where my host machine lives.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;And restart the service:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo service dnsmasq restart
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;configuring-nfs&#34;&gt;Configuring NFS&lt;/h1&gt;
+&lt;p&gt;Now it is time to serve the rootfs folder. First, as with the other tools, you need to install it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo apt install nfs-kernel-server
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then add the following to the &lt;code&gt;/etc/exports&lt;/code&gt; config file:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;&amp;lt;HOST_ROOTFS&amp;gt; 192.168.1.0/24(rw,no_root_squash,async,no_subtree_check)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Export the new NFS file system and restart the service:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo exportfs -rav
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo systemctl restart nfs-kernel-server
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;booting-the-system&#34;&gt;Booting the system&lt;/h1&gt;
+&lt;p&gt;I assume you have a new kernel image you want to boot, so we need to prepare the kernel image and its modules before doing anything.&lt;/p&gt;
+&lt;p&gt;All the steps in the following subsections are executed from the kernel source root directory.&lt;/p&gt;
+&lt;h2 id=&#34;before-booting&#34;&gt;Before booting&lt;/h2&gt;
+&lt;p&gt;Before doing anything, you must disable mounting the rootfs from the SD card. This must be done once, but it is an important step. Open the file located at &lt;code&gt;&amp;lt;HOST_ROOTFS&amp;gt;/etc/fstab&lt;/code&gt; and comment the following line:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;...
+# PARTUUID=f619f15c-02  /               ext4    defaults,noatime  0       1
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;Note: The UUID will be different in your case.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;build-a-new-kernel&#34;&gt;Build a new kernel&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Build the kernel image, modules and device tree bindings:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ make ARCH=arm64 CROSS_COMPILE=&amp;#34;aarch64-linux-gnu-&amp;#34; -j$(nproc) Image modules dtbs
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Place the new kernel image in the TFTP directory:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ sudo cp arch/arm64/boot/Image /var/tftpd
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Install the new kernel modules in the host root fs folder:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ sudo make ARCH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;arm64 CROSS_COMPILE&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;aarch64-linux-gnu-&amp;#34;&lt;/span&gt; INSTALL_MOD_PATH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;lt;HOST_ROOTFS&amp;gt; modules_install
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Note: Device tree bindings were compiled but not copied anywhere because they must be placed in the boot partition. If you need to modify the device tree bindings, you can copy the compiled &lt;code&gt;dtbo&lt;/code&gt; file to the home folder and move it from there using ssh.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;booting-up-the-raspberry-pi&#34;&gt;Booting up the Raspberry Pi&lt;/h1&gt;
+&lt;p&gt;It is time! Now that we have everything in place in the host machine, plug your Raspberry Pi to a USB keyboard, a display screen and start it. If everything goes right, you will boot into the U-Boot prompt console after some failed boot trials. This is ok, now it is time to configure U-Boot to use the kernel image in the TFTP directory and mount as the root file system the one that we are serving through NFS.&lt;/p&gt;
+&lt;h2 id=&#34;testing-the-setup&#34;&gt;Testing the setup&lt;/h2&gt;
+&lt;p&gt;Before making the U-Boot configuration &amp;ldquo;permanent&amp;rdquo; (you can change it later :P), I believe it is a good idea to test it. Execute the following commands inside the U-Boot prompt:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;U-Boot&amp;gt; dhcp
+U-Boot&amp;gt; setenv serverip &amp;lt;HOST_MACHINE_IP_ADDRESS&amp;gt;
+U-Boot&amp;gt; tftp ${kernel_addr_r} Image
+U-Boot&amp;gt; fdt addr ${fdt_addr}
+U-Boot&amp;gt; fdt set /chosen bootargs &amp;#34;console=serial0,115200 console=tty1 root=/dev/nfs nfsroot=&amp;lt;HOST_MACHINE_IP_ADDRESS&amp;gt;:&amp;lt;HOST_ROOTFS&amp;gt;,nfsvers=4.1, rw ip=dhcp&amp;#34;
+U-Boot&amp;gt; booti ${kernel_addr_r} - ${fdt_addr}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If everything is configured correctly, you should boot into a new Raspberry Pi Os installation. Log-in with the user and password you specified in the Raspberry Pi Imager.&lt;/p&gt;
+&lt;p&gt;To check if you are really using the NFS root file system, in your host machine, create a file in your Raspberry&amp;rsquo;s user home directory:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ touch &amp;lt;HOST_ROOTFS&amp;gt;/home/&amp;lt;YOUR_USERNAME&amp;gt;/TEST_NFS
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and check if you can see it in the Raspberry Pi TTY using &lt;code&gt;ls&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;automatically-booting-using-tftp-and-nfs&#34;&gt;Automatically booting using TFTP and NFS&lt;/h2&gt;
+&lt;p&gt;To avoid entering the commands every time you boot, you can save the environment. To make this configuration &amp;ldquo;permanent&amp;rdquo;, enter the following commands into the U-Boot console:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;U-Boot&amp;gt; setenv autoload no
+U-Boot&amp;gt; setenv netboot &amp;#39;dhcp; setenv serverip &amp;lt;HOST_MACHINE_IP_ADDRESS&amp;gt;; tftp ${kernel_addr_r} Image; fdt addr ${fdt_addr}; fdt set /chosen bootargs &amp;#34;console=serial0,115200 console=tty1 root=/dev/nfs nfsroot=&amp;lt;HOST_MACHINE_IP_ADDRESS&amp;gt;:&amp;lt;HOST_ROOTFS&amp;gt;,nfsvers=4.1, rw ip=dhcp&amp;#34;; bootconfig; booti ${kernel_addr_r} - ${fdt_addr}&amp;#39;
+U-Boot&amp;gt; setenv bootcmd &amp;#34;run netboot&amp;#34;
+U-Boot&amp;gt; saveenv
+&lt;/code&gt;&lt;/pre&gt;&lt;h1 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h1&gt;
+&lt;p&gt;You can develop using the SD card alone, but this setup is way more convenient because it makes working with different kernel versions, different devices and kernel modules easier. I hope you find this guide useful.&lt;/p&gt;
+&lt;h1 id=&#34;resources&#34;&gt;Resources&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;(Buildroot and U-boot on Raspberry Pi)[https://casan.se/blog/linux/buildroot-and-u-boot-on-raspberry-pi/]&lt;/li&gt;
+&lt;li&gt;(Booting RAM disk images over Ethernet)[https://embear.ch/posts/booting-ramdisks-over-ethernet]&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded>
+    </item>
+    <item>
       <title>Debian&#39;s DebConf 26 in Santa Fe, Argentina</title>
       <link>https://nicoan.net/posts/debconf26_experience/</link>
       <pubDate>Tue, 11 Aug 2026 12:00:00 -0300</pubDate>
