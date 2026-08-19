@@ -143,8 +143,8 @@ U-Boot&amp;gt; saveenv
 &lt;p&gt;You can develop using the SD card alone, but this setup is way more convenient because it makes working with different kernel versions, different devices and kernel modules easier. I hope you find this guide useful.&lt;/p&gt;
 &lt;h1 id=&#34;resources&#34;&gt;Resources&lt;/h1&gt;
 &lt;ul&gt;
-&lt;li&gt;(Buildroot and U-boot on Raspberry Pi)[https://casan.se/blog/linux/buildroot-and-u-boot-on-raspberry-pi/]&lt;/li&gt;
-&lt;li&gt;(Booting RAM disk images over Ethernet)[https://embear.ch/posts/booting-ramdisks-over-ethernet]&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://casan.se/blog/linux/buildroot-and-u-boot-on-raspberry-pi/&#34;&gt;Buildroot and U-boot on Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://embear.ch/posts/booting-ramdisks-over-ethernet&#34;&gt;Booting RAM disk images over Ethernet&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </content:encoded>
     </item>
