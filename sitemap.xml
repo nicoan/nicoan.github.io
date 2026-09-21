@@ -2,6 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://nicoan.net/posts/linux_kernel_mentorship_program/</loc>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
+  </url><url>
     <loc>https://nicoan.net/posts/kernel_dev_rpy_uboot_tftp_nfs/</loc>
     <lastmod>2026-08-19T12:00:00-03:00</lastmod>
   </url><url>
@@ -36,28 +39,28 @@
     <lastmod>2022-07-26T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/categories/</loc>
-    <lastmod>2026-08-19T12:00:00-03:00</lastmod>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/categories/development/</loc>
-    <lastmod>2026-08-19T12:00:00-03:00</lastmod>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/categories/kernel/</loc>
-    <lastmod>2026-08-19T12:00:00-03:00</lastmod>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/tags/linux/</loc>
-    <lastmod>2026-08-19T12:00:00-03:00</lastmod>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/categories/linux/</loc>
-    <lastmod>2026-08-19T12:00:00-03:00</lastmod>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/</loc>
-    <lastmod>2026-08-19T12:00:00-03:00</lastmod>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/posts/</loc>
-    <lastmod>2026-08-19T12:00:00-03:00</lastmod>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/tags/</loc>
-    <lastmod>2026-08-19T12:00:00-03:00</lastmod>
+    <lastmod>2026-09-18T12:00:00-03:00</lastmod>
   </url><url>
     <loc>https://nicoan.net/tags/debian/</loc>
     <lastmod>2026-08-11T12:00:00-03:00</lastmod>

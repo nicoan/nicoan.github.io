@@ -6,6 +6,71 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language><atom:link href="https://nicoan.net/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>My experience in the Linux Kernel Mentorship Program</title>
+      <link>https://nicoan.net/posts/linux_kernel_mentorship_program/</link>
+      <pubDate>Fri, 18 Sep 2026 12:00:00 -0300</pubDate>
+      <guid>https://nicoan.net/posts/linux_kernel_mentorship_program/</guid>
+      <description>&lt;p&gt;Contributing to the Linux kernel is something that I wanted to do since I got interested in programming. I never did it (until now!) because it felt too big, it was not an easy decision to start contributing to one of the biggest and most important projects of the open source space. After having contributed to some other open source projects, I decided that it was time that I give Linux a try. After all, it is a piece of software that I use on daily basis, it aligns with my interests in systems programming and it is a project where I can learn &lt;em&gt;a lot&lt;/em&gt; because it is built by experts.&lt;/p&gt;</description>
+      <content:encoded>&lt;p&gt;Contributing to the Linux kernel is something that I wanted to do since I got interested in programming. I never did it (until now!) because it felt too big, it was not an easy decision to start contributing to one of the biggest and most important projects of the open source space. After having contributed to some other open source projects, I decided that it was time that I give Linux a try. After all, it is a piece of software that I use on daily basis, it aligns with my interests in systems programming and it is a project where I can learn &lt;em&gt;a lot&lt;/em&gt; because it is built by experts.&lt;/p&gt;
+&lt;p&gt;So, the decision is made, but where do I begin? Searching on the internet how I could get started&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; I found the &lt;a href=&#34;https://mentorship.lfx.linuxfoundation.org/project/ffc2a0e1-2675-433b-84a7-4b66669eec27&#34;&gt;Linux Kernel Mentorship Program&lt;/a&gt; and decided to apply.&lt;/p&gt;
+&lt;h1 id=&#34;application-process&#34;&gt;Application Process&lt;/h1&gt;
+&lt;p&gt;The application process requires you to complete &lt;a href=&#34;https://training.linuxfoundation.org/training/a-beginners-guide-to-linux-kernel-development-lfd103/&#34;&gt;&amp;ldquo;A Beginner’s Guide to Linux Kernel Development (LFD103)&amp;rdquo;&lt;/a&gt;, a free course by the Linux foundation that teaches you the basics of the kernel development process and how to interact with the community. Along with that, other tasks are given to you, some to evaluate your software development skills and some to evaluate your problem solving skills. I recommend you to take them seriously.&lt;/p&gt;
+&lt;p&gt;The program usually receives a lot of applications, and there are a lot of talented people out there, so I did not have high hopes of getting accepted. On 5th of June I received an e-mail confirming that I was accepted! I was thrilled!&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;https://nicoan.net/images/linux_kernel_mentorship_program/acceptance_screen.png#center&#34; alt=&#34;E-mail acceptance screenshot&#34;  /&gt;
+&lt;/p&gt;
+&lt;h1 id=&#34;the-first-weeks&#34;&gt;The First Weeks&lt;/h1&gt;
+&lt;p&gt;Even though I am used to get familiar with big new codebases, the Linux kernel is a different beast. The kernel is divided into several subsystems that manage a different aspects. At the beginning of the program, we are told to focus in two subsystems &lt;em&gt;at most&lt;/em&gt;, and believe me, this is a very valuable piece of advice. The kernel is huge, and each subsystem has its own peculiarities and conventions. Focusing on various subsystems at the same time means learning a lot of different and new information at the same time.&lt;/p&gt;
+&lt;p&gt;At the beginning it is normal to feel a little bit lost. A common question arises among mentees &lt;em&gt;&amp;ldquo;What subsystems do I choose?&amp;rdquo;&lt;/em&gt;. My recommendation here is, stay away from core subsystems (such as memory management) since those require a lot of expertise, and go with what you are most interested in. In my case I chose the &lt;a href=&#34;https://docs.kernel.org/gpu/introduction.html&#34;&gt;DRM subsystem&lt;/a&gt; in charge of managing everything related to rendering graphics, a topic I find very interesting, and &lt;a href=&#34;https://docs.kernel.org/iio/index.html&#34;&gt;IIO Subsystem&lt;/a&gt; because I wanted to learn how to write device drivers&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; by starting with the simplest ones. I also checked the &lt;a href=&#34;https://rust-for-linux.com/&#34;&gt;Rust for Linux&lt;/a&gt; project, because, as you can see in a lot of other posts on this blog I am really interested in the Rust programming language!&lt;/p&gt;
+&lt;h1 id=&#34;the-general-experience&#34;&gt;The General Experience&lt;/h1&gt;
+&lt;p&gt;The program is designed to be self-driven &lt;em&gt;on purpose&lt;/em&gt;, because it is what open source contributors experience. This means that you are in charge of finding where to contribute, learn what is needed to generate a patch and send it to the mailing list.&lt;/p&gt;
+&lt;p&gt;Since it is a self-driven program, &lt;em&gt;a lot&lt;/em&gt; doubts about different topics will surely arise. To solve them, a one-hour weekly meeting is held where mentors will answer questions and explain different things. Along with those, some other things that really helped me were to ask questions directly to other more experienced mentees (some people in the program already have some kernel development experience), read the &lt;a href=&#34;https://lore.kernel.org/linux-kernel-mentees/&#34;&gt;mailing list&lt;/a&gt; periodically and read the documentation of the subsystems I chose.&lt;/p&gt;
+&lt;p&gt;The program also prohibits the use of AI, and this is a &lt;strong&gt;good&lt;/strong&gt; thing. Using AI interrupts the learning process. To learn, you need to struggle.&lt;/p&gt;
+&lt;h1 id=&#34;the-myth&#34;&gt;The Myth&lt;/h1&gt;
+&lt;p&gt;There is a myth that the Linux kernel community is a harsh one. That when you send a patch you will get no friendly suggestions or you will be insulted. That is &lt;strong&gt;not&lt;/strong&gt; true, at all. Maintainers are people too, and they are usually busy, their feedback is concrete and goes straight to the point for the sake of efficiency, but no one will mistreat you. Also, getting feedback from experienced kernel developers is of immense value.&lt;/p&gt;
+&lt;p&gt;Demonstrate that you invested time to understand what you are doing, put effort on the patches you send and be willing to continue working on them when you receive feedback. Be respectful of the other person&amp;rsquo;s time.&lt;/p&gt;
+&lt;h1 id=&#34;from-small-to-not-so-small-patches&#34;&gt;From Small To Not-So-Small Patches&lt;/h1&gt;
+&lt;p&gt;My first patch was a &lt;a href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b59020834b2d8718fe37a4e77367f554cbf95982&#34;&gt;very small one&lt;/a&gt;: an optimization in the Rust’s OPP module that removes intermediate symbols generated by clang for methods that are just a wrapper of C functions. I still remember the sensation when I received the &lt;a href=&#34;https://lore.kernel.org/all/uh2ygvuuzgipledqoooivdfkbxi5i6j4ram764a36xanxfndtt@oqg57uovhkwn/&#34;&gt;e-mail confirming that it was applied!&lt;/a&gt; More small patches followed this one, but as I became more familiar with the code (and the subsystems I chose) I increased the complexity of the things I worked on. It is recommended to start sending patches early on the program. Don&amp;rsquo;t be afraid to send simple ones, you have to start somewhere.&lt;/p&gt;
+&lt;p&gt;To make my life easier, I created a scrum-like (ugh) board to follow my progress:&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;https://nicoan.net/images/linux_kernel_mentorship_program/patches-board.png#center&#34; alt=&#34;Patches board&#34;  /&gt;
+&lt;/p&gt;
+&lt;p&gt;As you can see, there are a lot of Rejected patches. Most of them were rejected because they were not ready yet to be merged into the kernel. Each of those rejections teached me something that I did not know or did not take into account before sending them.&lt;/p&gt;
+&lt;p&gt;You can check my list of accepted patches in the kernel &lt;a href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/log/?qt=author&amp;amp;q=nico.antinori.7@gmail.com&#34;&gt;here&lt;/a&gt;. At the moment of writing this post, this is what &lt;code&gt;git log --author=nico.antinori.7@gmail.com --pretty --format=oneline&lt;/code&gt; gives me:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;i2c: rust: mark I2cAdapter methods as inline
+rust: pin-init: mark `pin_init::zeroed` and `Zeroable::zeroed` as `#[inline]`
+rust: pin-init: docs: link `Zeroable::zeroed` and `pin_init::zeroed` in documentation
+rust_binder: use pin_init::zeroed for file_operations initialization
+usb: rust: mark Device and Interface methods as inline
+drm/amdgpu: Inline drm_simple_encoder_init()
+drm/panel: novatek-nt37801: Use mipi_dsi_*_multi() functions
+rust: iommu: replace core::mem::zeroed with Zeroable::zeroed
+usb: rust: Use pin_init::zeroed for usb_device_id initialization
+gpu: nova-core: vbios: parse structs via zerocopy
+(tag: rust-i2c-7.1-rc7, i2c/rust-i2c-fixes) rust: i2c: fix I2cAdapter refcounts double increment
+(tag: opp-updates-7.2) opp: rust: mark OPP methods as inline
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;And in &lt;a href=&#34;https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/log/?qt=author&amp;amp;q=nico.antinori.7@gmail.com&#34;&gt;linux-next&lt;/a&gt; tree there are three more:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;rust_binder: simplify Result&amp;lt;()&amp;gt; uses
+iio: humidity: am2315: add support for am2320
+dt-bindings: trivial-devices: add Aosong AM2315 and AM2320 chips
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: Commit hashes were removed for the sake of redability.&lt;/p&gt;
+&lt;p&gt;Currently, I am working in a &lt;a href=&#34;https://lore.kernel.org/all/cover.1788711082.git.nico.antinori.7@gmail.com/&#34;&gt;DRM driver for the CH1115 controller&lt;/a&gt;, a simple driver, but that requires dealing with different subsystems (i2c, DRM) and different kernel APIs.&lt;/p&gt;
+&lt;h1 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h1&gt;
+&lt;p&gt;I had a really good experience going through this program. The chance of being part of the kernel community and being able to contribute to such an important project is priceless to me.&lt;/p&gt;
+&lt;p&gt;I am very grateful to my mentors &lt;a href=&#34;https://www.shuahkhan.com/&#34;&gt;Shuah Khan&lt;/a&gt;, &lt;a href=&#34;https://brighamcampbell.com/&#34;&gt;Brigham Campbell&lt;/a&gt; and &lt;a href=&#34;https://koolstra.xyz/&#34;&gt;Jori Koolstra&lt;/a&gt; for all the patience and guidance. The program definitely made things easier, seeing people struggling with the same things as I, and having mentors to help with those struggles and the general process of becoming a kernel developer is highly encouraging for newcomers. Thanks to them and the program I achieved my long time objective of contributing to the Linux kernel.&lt;/p&gt;
+&lt;p&gt;My plan is, of course, to continue contributing.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;
+&lt;p&gt;You can also check the &lt;a href=&#34;https://kernelnewbies.org/&#34;&gt;Kernel Newbies&lt;/a&gt; program.&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;
+&lt;p&gt;The &lt;a href=&#34;../kernel_dev_rpy_uboot_tftp_nfs&#34;&gt;Setting up a Linux Kernel dev environment with Raspberry Pi, U-Boot, TFTP and NFS&lt;/a&gt; post is the process I followed to set up my Raspberry Pi 3b+ as a work station for developing drivers and testing things.&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</content:encoded>
+    </item>
+    <item>
       <title>Setting up a Linux Kernel dev environment with Raspberry Pi, U-Boot, TFTP and NFS</title>
       <link>https://nicoan.net/posts/kernel_dev_rpy_uboot_tftp_nfs/</link>
       <pubDate>Wed, 19 Aug 2026 12:00:00 -0300</pubDate>
